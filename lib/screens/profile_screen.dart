@@ -1,179 +1,256 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'batch_screen.dart';
-
-class LatLng {
-  final double latitude;
-  final double longitude;
-  const LatLng(this.latitude, this.longitude);
-
-  String toStringAsFixed(int digits) {
-    return 'Lat: ${latitude.toStringAsFixed(digits)}, Lon: ${longitude.toStringAsFixed(digits)}';
-  }
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/auth_service.dart';
+import 'package:harvestguard_bd/screens/home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final bool isBangla;
+  final Map<String, String>? latestBatch;
+
+  const ProfileScreen({super.key, required this.isBangla, this.latestBatch});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  LatLng _selectedLocation = const LatLng(23.8103, 90.4125);
-  bool _isLocationSelected = true;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final user = AuthService().currentUser;
 
-  void _mockLocationSelection() {
-    setState(() {
-      _selectedLocation = LatLng(
-        24.0 + (1 * (0.5 - (DateTime.now().second / 60))),
-        90.0 + (1 * (0.5 - (DateTime.now().minute / 60))),
-      );
-      _isLocationSelected = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'নতুন অবস্থান নির্বাচিত: ${_selectedLocation.toStringAsFixed(4)}',
-        ),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+  Stream<DocumentSnapshot<Map<String, dynamic>>> _farmerStream() {
+    if (user == null) throw Exception("User not logged in");
+    return _firestore.collection('farmers').doc(user!.uid).snapshots();
   }
 
-  Widget _buildMapPlaceholder() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(15.r),
-          ),
-          child: Center(
-            child: Icon(
-              Icons.map_outlined,
-              size: 100.sp,
-              color: Colors.grey.shade400,
-            ),
-          ),
-        ),
-        if (_isLocationSelected)
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.location_on, color: Colors.redAccent, size: 48.sp),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(5.r),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 4),
-                  ],
-                ),
-                child: Text(
-                  'আপনার ফার্মের অবস্থান',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        Positioned(
-          bottom: 15.h,
-          child: ElevatedButton.icon(
-            onPressed: _mockLocationSelection,
-            icon: const Icon(Icons.edit_location_alt, color: Colors.white),
-            label: Text(
-              'অবস্থান চিহ্নিত করুন',
-              style: TextStyle(fontSize: 16.sp, color: Colors.white),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4CAF50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
-            ),
-          ),
-        ),
-      ],
-    );
+  Stream<List<Map<String, dynamic>>> _batchesStream() {
+    if (user == null) return const Stream.empty();
+
+    return _firestore
+        .collection('crop_batches')
+        .where('uid', isEqualTo: user!.uid) // only current user's batches
+        .snapshots()
+        .map((snapshot) {
+      final batches = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'crop': data['crop'] ?? '',
+          'weight': data['weight'] ?? '',
+          'date': data['date'] ?? '',
+          'location': data['location'] ?? '',
+          'storage': data['storage'] ?? '',
+          'timestamp': data['timestamp'] ?? null,
+        };
+      }).toList();
+
+      // Sort by timestamp descending
+      batches.sort((a, b) {
+        final aTime = a['timestamp'] as Timestamp?;
+        final bTime = b['timestamp'] as Timestamp?;
+        if (aTime == null || bTime == null) return 0;
+        return bTime.compareTo(aTime);
+      });
+
+      return batches;
+    });
+  }
+
+  Future<void> _saveBatchToFirebase(Map<String, String> batch) async {
+    if (user == null) return;
+    try {
+      await _firestore.collection('crop_batches').add({
+        'uid': user!.uid,
+        'crop': batch['crop'],
+        'weight': batch['weight'],
+        'date': batch['date'],
+        'location': batch['location'],
+        'storage': batch['storage'],
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint("Error saving batch: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.latestBatch != null) {
+      _saveBatchToFirebase(widget.latestBatch!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = widget.isBangla;
+    final primaryColor = const Color(0xFF2E7D32);
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(t ? "প্রোফাইল ড্যাশবোর্ড" : "Profile Dashboard"),
+          backgroundColor: primaryColor,
+        ),
+        body: Center(child: Text(t ? "ব্যবহারকারী লগইন করেননি" : "User not logged in")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'ফার্মের অবস্থান নির্ধারণ (A2)',
-          style: TextStyle(fontSize: 18.sp),
-        ),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Text(
-              'A2: ম্যাপে আপনার প্রধান ফার্মের অবস্থান চিহ্নিত করুন। এই ডেটা আবহাওয়ার পরামর্শের জন্য ব্যবহৃত হবে।',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              margin: EdgeInsets.all(10.w),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.r),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15.r),
-                child: _buildMapPlaceholder(),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'নির্বাচিত অবস্থান (Mock): ${_selectedLocation.toStringAsFixed(4)}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14.sp, color: Colors.blueGrey),
-                ),
-                SizedBox(height: 10.h),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const BatchScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
-                    minimumSize: Size(double.infinity, 55.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                  child: Text(
-                    'অবস্থান সেভ করুন ও শস্য ইনভেন্টরি শুরু করুন',
-                    style: TextStyle(fontSize: 18.sp, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
+        title: Text(t ? "প্রোফাইল ড্যাশবোর্ড" : "Profile Dashboard"),
+        backgroundColor: primaryColor,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            tooltip: t ? "হোমে যান" : "Go to Home",
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+              );
+            },
           ),
         ],
+      ),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: _farmerStream(),
+        builder: (context, farmerSnapshot) {
+          if (farmerSnapshot.hasError) {
+            return Center(
+              child: Text(t ? "ত্রুটি হয়েছে" : "Something went wrong"),
+            );
+          }
+          if (!farmerSnapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final farmerData = farmerSnapshot.data!.data();
+
+          return StreamBuilder<List<Map<String, dynamic>>>(
+            stream: _batchesStream(),
+            builder: (context, batchSnapshot) {
+              if (batchSnapshot.hasError) {
+                return Center(
+                    child: Text(t ? "ত্রুটি হয়েছে" : "Something went wrong"));
+              }
+              if (!batchSnapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final batches = batchSnapshot.data!;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ================= Farmer Info =================
+                    if (farmerData != null)
+                      Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                farmerData['name'] ?? "Farmer",
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                farmerData['email'] ?? "",
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                farmerData['phone'] ?? "",
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // ================= Latest Batch =================
+                    Text(
+                      t ? "সর্বশেষ ব্যাচ" : "Latest Batch",
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    if (widget.latestBatch != null)
+                      _batchCard(widget.latestBatch!),
+
+                    const SizedBox(height: 24),
+                    Text(
+                      t ? "সকল ব্যাচ" : "All Batches",
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ...batches.map(_batchCard).toList(),
+
+                    const SizedBox(height: 24),
+                    Text(
+                      t ? "ইতিহাস এবং সফলতা হার" : "Loss Events & Success Rates",
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    _statCard(
+                      t ? "সফল হস্তক্ষেপ" : "Successful Interventions",
+                      "80%",
+                      primaryColor,
+                    ),
+                    const SizedBox(height: 8),
+                    _statCard(
+                      t ? "ফসল ক্ষতি হার" : "Crop Loss Rate",
+                      "5%",
+                      Colors.red,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _batchCard(Map<String, dynamic> batch) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Crop: ${batch['crop']}"),
+            Text("Weight: ${batch['weight']} kg"),
+            Text("Date: ${batch['date']}"),
+            Text("Location: ${batch['location']}"),
+            Text("Storage: ${batch['storage']}"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statCard(String title, String value, Color color) {
+    return Card(
+      elevation: 2,
+      child: ListTile(
+        title: Text(title),
+        trailing: Text(
+          value,
+          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+        ),
       ),
     );
   }

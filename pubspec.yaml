@@ -42,7 +42,10 @@ dependencies:
   flutter_animate: ^4.5.2
   image_picker: ^1.2.1
   flutter_cube: ^0.1.1
-
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
+  hive_flutter: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

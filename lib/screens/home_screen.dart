@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../services/auth_service.dart';
+import 'package:harvestguard_bd/screens/login_screen.dart';
+import 'package:harvestguard_bd/screens/registration_screen.dart';
+import 'package:harvestguard_bd/screens/profile_screen.dart';
+import 'package:harvestguard_bd/screens/batch_screen.dart';
+import 'package:harvestguard_bd/screens/scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -35,6 +41,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _pulseController.dispose();
     super.dispose();
   }
+
+  bool get isLoggedIn => AuthService().currentUser != null;
+  String get farmerName => AuthService().currentUser?.displayName ?? "";
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               _buildProblemStatement(),
               _buildAnimatedFlowVisualization(),
               _buildImpactMetrics(),
-              _buildCallToAction(),
+              if (!isLoggedIn) _buildCallToAction(),
               _buildFooter(),
             ],
           ),
@@ -66,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ================= Drawer =================
   Widget _buildDrawer() {
     return Drawer(
       child: Column(
@@ -94,11 +104,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-          _buildDrawerItem(Icons.person, isBangla ? "প্রোফাইল" : "Profile", '/profile'),
-          _buildDrawerItem(Icons.storage, isBangla ? "ব্যাচ স্ক্রিন" : "Batch Screen", '/batch'),
-          _buildDrawerItem(Icons.qr_code_scanner, isBangla ? "স্ক্যানার" : "Scanner", '/scanner'),
-          _buildDrawerItem(Icons.settings, isBangla ? "সেটিংস" : "Settings", '/settings'),
-          _buildDrawerItem(Icons.logout, isBangla ? "লগআউট" : "Logout", null),
+          if (isLoggedIn) ...[
+            _buildDrawerItem(Icons.person, isBangla ? "প্রোফাইল" : "Profile", '/profile'),
+            _buildDrawerItem(Icons.storage, isBangla ? "ব্যাচ স্ক্রিন" : "Batch Screen", '/batch'),
+            _buildDrawerItem(Icons.qr_code_scanner, isBangla ? "স্ক্যানার" : "Scanner", '/scanner'),
+            _buildDrawerItem(Icons.logout, isBangla ? "লগআউট" : "Logout", '/logout'),
+          ],
           const Spacer(),
           ListTile(
             leading: const Icon(Icons.language),
@@ -120,15 +131,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       leading: Icon(icon, color: Colors.green.shade700),
       title: Text(title, style: TextStyle(fontSize: 16.sp)),
       onTap: () {
-        if (route != null) {
-          Navigator.pushNamed(context, route);
-        } else {
-          Navigator.pop(context);
+        Navigator.pop(context);
+        if (route == '/logout') {
+          AuthService().signOut().then((_) => setState(() {}));
+        } else if (route != null) {
+          if (route == '/profile') {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen(isBangla: isBangla)));
+          } else if (route == '/batch') {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => CropBatchRegistrationScreen(isBangla: isBangla)));
+          } else if (route == '/scanner') {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ScannerScreen()));
+          }
         }
       },
     );
   }
 
+  // ================= Header =================
   Widget _buildHeader() {
     return Container(
       height: 75.h,
@@ -168,27 +187,55 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/auth'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.green.shade700,
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-            child: Text(
-              isBangla ? 'শুরু করুন' : 'Get Started',
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
-          ),
+          isLoggedIn
+              ? Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20.sp,
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        farmerName.isNotEmpty ? farmerName[0].toUpperCase() : "F",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20.sp,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      farmerName,
+                      style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                )
+              : ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => LoginScreen(isBangla: isBangla)),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.green.shade700,
+                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                  child: Text(
+                    isBangla ? 'শুরু করুন' : 'Get Started',
+                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                  ),
+                ),
         ],
       ),
     );
   }
 
+  // ================= Hero Section =================
   Widget _buildHeroSection() {
     return Container(
       width: double.infinity,
@@ -260,6 +307,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ... the rest of the code remains unchanged
+
+  // ================= Problem Statement =================
   Widget _buildProblemStatement() {
     return Container(
       width: double.infinity,
@@ -285,29 +335,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             child: Column(
               children: [
-                _buildProblemCard(
-                  Icons.warning_amber_rounded,
-                  isBangla
-                      ? "প্রতি বছর ৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট"
-                      : "4.5M metric tons of food lost annually",
-                  Colors.orange,
-                ),
+                _buildProblemCard(Icons.warning_amber_rounded,
+                    isBangla ? "প্রতি বছর ৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট" : "4.5M metric tons of food lost annually", Colors.orange),
                 SizedBox(height: 20.h),
-                _buildProblemCard(
-                  Icons.trending_down,
-                  isBangla
-                      ? "কৃষকরা হাজার কোটি টাকা হারাচ্ছেন"
-                      : "Farmers lose billions in revenue",
-                  Colors.red,
-                ),
+                _buildProblemCard(Icons.trending_down,
+                    isBangla ? "কৃষকরা হাজার কোটি টাকা হারাচ্ছেন" : "Farmers lose billions in revenue", Colors.red),
                 SizedBox(height: 20.h),
-                _buildProblemCard(
-                  Icons.bug_report,
-                  isBangla
-                      ? "পোকামাকড় ও রোগে ফসল নষ্ট"
-                      : "Pests & diseases destroy crops",
-                  Colors.purple,
-                ),
+                _buildProblemCard(Icons.bug_report,
+                    isBangla ? "পোকামাকড় ও রোগে ফসল নষ্ট" : "Pests & diseases destroy crops", Colors.purple),
               ],
             ),
           ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
@@ -344,11 +379,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade800,
-              ),
+              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600, color: Colors.grey.shade800),
             ),
           ),
         ],
@@ -356,6 +387,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ================= Flow Visualization =================
   Widget _buildAnimatedFlowVisualization() {
     return Container(
       width: double.infinity,
@@ -371,11 +403,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           Text(
             isBangla ? "💡 সমাধান" : "💡 The Solution",
-            style: TextStyle(
-              fontSize: 32.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.green.shade800,
-            ),
+            style: TextStyle(fontSize: 32.sp, fontWeight: FontWeight.bold, color: Colors.green.shade800),
           ),
           SizedBox(height: 40.h),
           AnimatedBuilder(
@@ -384,33 +412,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFlowStep(
-                    Icons.sensors,
-                    isBangla ? 'ডেটা সংগ্রহ' : 'Data',
-                    Colors.blue,
-                    0,
-                  ),
+                  _buildFlowStep(Icons.sensors, isBangla ? 'ডেটা সংগ্রহ' : 'Data', Colors.blue, 0),
                   _buildFlowArrow(),
-                  _buildFlowStep(
-                    Icons.notification_important,
-                    isBangla ? 'সতর্কতা' : 'Warning',
-                    Colors.orange,
-                    0.25,
-                  ),
+                  _buildFlowStep(Icons.notification_important, isBangla ? 'সতর্কতা' : 'Warning', Colors.orange, 0.25),
                   _buildFlowArrow(),
-                  _buildFlowStep(
-                    Icons.agriculture,
-                    isBangla ? 'কর্ম' : 'Action',
-                    Colors.red,
-                    0.5,
-                  ),
+                  _buildFlowStep(Icons.agriculture, isBangla ? 'কর্ম' : 'Action', Colors.red, 0.5),
                   _buildFlowArrow(),
-                  _buildFlowStep(
-                    Icons.check_circle,
-                    isBangla ? 'ফসল রক্ষা' : 'Saved',
-                    Colors.green.shade700,
-                    0.75,
-                  ),
+                  _buildFlowStep(Icons.check_circle, isBangla ? 'ফসল রক্ষা' : 'Saved', Colors.green.shade700, 0.75),
                 ],
               );
             },
@@ -422,12 +430,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildFlowStep(IconData icon, String label, Color color, double delay) {
     final animation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _flowController,
-        curve: Interval(delay, delay + 0.25, curve: Curves.easeInOut),
-      ),
+      CurvedAnimation(parent: _flowController, curve: Interval(delay, delay + 0.25, curve: Curves.easeInOut)),
     );
-
     return Transform.scale(
       scale: animation.value,
       child: Column(
@@ -438,38 +442,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.4),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
-              ],
+              boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 20, spreadRadius: 5)],
             ),
             child: Icon(icon, size: 48.sp, color: Colors.white),
           ),
           SizedBox(height: 15.h),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
         ],
       ),
     );
   }
 
   Widget _buildFlowArrow() {
-    return Icon(
-      Icons.arrow_forward,
-      size: 36.sp,
-      color: Colors.grey.shade400,
-    );
+    return Icon(Icons.arrow_forward, size: 36.sp, color: Colors.grey.shade400);
   }
 
+  // ================= Impact Metrics =================
   Widget _buildImpactMetrics() {
     return Container(
       width: double.infinity,
@@ -479,11 +467,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           Text(
             isBangla ? "আমাদের প্রভাব" : "Our Impact",
-            style: TextStyle(
-              fontSize: 32.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontSize: 32.sp, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           SizedBox(height: 40.h),
           Row(
@@ -506,57 +490,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 42.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.green.shade700,
-            ),
-          ),
+          Text(value, style: TextStyle(fontSize: 42.sp, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
           SizedBox(height: 10.h),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 20.sp,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500, color: Colors.grey.shade700)),
         ],
       ),
     ).animate().fadeIn(duration: 800.ms).scale(delay: 200.ms);
   }
 
+  // ================= Call to Action =================
   Widget _buildCallToAction() {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 80.h),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green.shade600, Colors.green.shade800],
-        ),
-      ),
+      decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.green.shade600, Colors.green.shade800])),
       child: Column(
         children: [
-          Text(
-            isBangla ? "আজই শুরু করুন" : "Start Protecting Today",
-            style: TextStyle(
-              fontSize: 36.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          Text(isBangla ? "আজই শুরু করুন" : "Start Protecting Today",
+              style: TextStyle(fontSize: 36.sp, fontWeight: FontWeight.bold, color: Colors.white)),
           SizedBox(height: 30.h),
           AnimatedBuilder(
             animation: _pulseController,
@@ -564,14 +519,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               return Transform.scale(
                 scale: 1.0 + (_pulseController.value * 0.05),
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/auth'),
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => RegistrationScreen(isBangla: isBangla)));
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.green.shade700,
                     padding: EdgeInsets.symmetric(horizontal: 60.w, vertical: 25.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(35),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
                     elevation: 10,
                   ),
                   child: Row(
@@ -579,10 +534,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     children: [
                       Text(
                         isBangla ? 'বিনামূল্যে নিবন্ধন করুন' : 'Register Free',
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(width: 15.w),
                       Icon(Icons.arrow_forward, size: 28.sp),
@@ -597,6 +549,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  // ================= Footer =================
   Widget _buildFooter() {
     return Container(
       width: double.infinity,
@@ -611,24 +564,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               SizedBox(width: 12.w),
               Text(
                 "HarvestGuardBD",
-                style: TextStyle(
-                  fontSize: 24.sp,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24.sp, color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           SizedBox(height: 15.h),
-          Text(
-            isBangla ? "স্মার্ট কৃষি প্ল্যাটফর্ম" : "Smart Agriculture Platform",
-            style: TextStyle(fontSize: 18.sp, color: Colors.white70),
-          ),
+          Text(isBangla ? "স্মার্ট কৃষি প্ল্যাটফর্ম" : "Smart Agriculture Platform",
+              style: TextStyle(fontSize: 18.sp, color: Colors.white70)),
           SizedBox(height: 25.h),
-          Text(
-            "© 2025 HarvestGuardBD. All Rights Reserved.",
-            style: TextStyle(fontSize: 16.sp, color: Colors.white60),
-          ),
+          if (!isLoggedIn)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => RegistrationScreen(isBangla: isBangla)));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 15.h),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              ),
+              child: Text(
+                isBangla ? 'বিনামূল্যে নিবন্ধন করুন' : 'Get Started',
+                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+              ),
+            ),
+          SizedBox(height: 15.h),
+          Text("© 2025 HarvestGuardBD. All Rights Reserved.",
+              style: TextStyle(fontSize: 16.sp, color: Colors.white60)),
         ],
       ),
     );

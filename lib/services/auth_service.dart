@@ -1,72 +1,87 @@
-import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  final Map<String, String> _users = {};
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  String? _currentUserEmail;
+  User? get currentUser => _auth.currentUser;
 
+  /// LOGIN
   Future<String> login(String email, String password) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 800));
-
     email = email.trim();
     password = password.trim();
 
     if (email.isEmpty || password.isEmpty) {
       return "Email and password must not be empty.";
     }
-    if (!_isValidEmail(email)) {
-      return "Please enter a valid email address.";
-    }
-    final stored = _users[email];
-    if (stored == null) {
-      return "No account found for that email.";
-    }
-    if (stored != password) {
-      return "Invalid password.";
-    }
 
-    _currentUserEmail = email;
-    return "ok";
+    try {
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return "ok";
+    } on FirebaseAuthException catch (e) {
+      return e.message ?? "Login failed.";
+    } catch (e) {
+      return "An unexpected error occurred.";
+    }
   }
 
-  Future<String> register(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-
+  /// REGISTER
+  Future<String> register({
+    required String name,
+    required String phone,
+    required String email,
+    required String password,
+    required String preferredLanguage,
+  }) async {
     email = email.trim();
     password = password.trim();
+    name = name.trim();
+    phone = phone.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      return "Email and password must not be empty.";
-    }
-    if (!_isValidEmail(email)) {
-      return "Please enter a valid email address.";
+    if (email.isEmpty || password.isEmpty || name.isEmpty || phone.isEmpty) {
+      return "All fields are required.";
     }
     if (password.length < 6) {
       return "Password must be at least 6 characters.";
     }
-    if (_users.containsKey(email)) {
-      return "An account already exists for that email.";
+
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Store additional profile data in Firestore
+      await _firestore.collection('farmers').doc(userCredential.user!.uid).set({
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'preferred_language': preferredLanguage,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      return "ok";
+    } on FirebaseAuthException catch (e) {
+      return e.message ?? "Registration failed.";
+    } catch (e) {
+      return "An unexpected error occurred.";
     }
-
-    _users[email] = password;
-    _currentUserEmail = email;
-    return "ok";
   }
 
+  /// SIGN OUT
   Future<void> signOut() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    _currentUserEmail = null;
+    await _auth.signOut();
   }
 
-  String? get currentUserEmail => _currentUserEmail;
-
-  bool _isValidEmail(String email) {
-    final re = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    return re.hasMatch(email);
+  /// GET PROFILE DATA
+  Future<Map<String, dynamic>?> getProfile() async {
+    if (currentUser == null) return null;
+    final doc = await _firestore.collection('farmers').doc(currentUser!.uid).get();
+    return doc.data();
   }
 }
