@@ -49,6 +49,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF0FFF4),
+
       drawer: Drawer(
         child: Column(
           children: [
@@ -64,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+
             ListTile(
               title: Text(isBangla ? "প্রোফাইল" : "Profile"),
               leading: const Icon(Icons.person),
@@ -89,7 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.logout),
               onTap: () {},
             ),
+
             const Spacer(),
+
             ListTile(
               leading: const Icon(Icons.language),
               title: Text(isBangla ? "English" : "বাংলা"),
@@ -125,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () => Scaffold.of(context).openDrawer(),
                           ),
                     ),
+
                     Text(
                       'HarvestGuardBD',
                       style: TextStyle(
@@ -134,55 +140,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isBangla = !isBangla;
-                            });
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16.w,
-                              vertical: 10.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: Text(
-                              isBangla ? "EN" : "BN",
-                              style: TextStyle(
-                                color: Colors.green.shade700,
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/auth');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 12.h,
                         ),
-                        SizedBox(width: 20.w),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/auth');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 20.w,
-                              vertical: 12.h,
-                            ),
-                          ),
-                          child: Text(
-                            isBangla ? 'লগইন' : 'Login',
-                            style: TextStyle(
-                              color: Colors.green.shade700,
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      ),
+                      child: Text(
+                        isBangla ? 'লগইন' : 'Login',
+                        style: TextStyle(
+                          color: Colors.green.shade700,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -211,7 +187,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.white,
                       ),
                     ),
+
                     SizedBox(height: 30.h),
+
                     DefaultTextStyle(
                       style: TextStyle(
                         fontSize: 28.sp,
@@ -262,11 +240,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: BoxDecoration(
                               color: Colors.green.shade100,
                               borderRadius: BorderRadius.circular(16.r),
-                              boxShadow: [
+                              boxShadow: const [
                                 BoxShadow(
                                   color: Colors.black12,
                                   blurRadius: 10,
-                                  offset: const Offset(2, 4),
+                                  offset: Offset(2, 4),
                                 ),
                               ],
                             ),
@@ -307,11 +285,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     color: Colors.green.shade50,
                     borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black12,
                         blurRadius: 12,
-                        offset: const Offset(2, 4),
+                        offset: Offset(2, 4),
                       ),
                     ],
                   ),
