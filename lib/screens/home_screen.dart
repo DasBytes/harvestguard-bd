@@ -324,14 +324,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: color.withOpacity(0.2),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -340,15 +335,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Container(
             padding: EdgeInsets.all(15.w),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withOpacity(0.1),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
             ),
             child: Icon(icon, color: color, size: 32.sp),
           ),
@@ -389,17 +377,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               color: Colors.green.shade800,
             ),
           ),
-          SizedBox(height: 20.h),
-          Text(
-            isBangla
-                ? "৪ টি সহজ ধাপে ফসল রক্ষা করুন"
-                : "Protect crops in 4 simple steps",
-            style: TextStyle(
-              fontSize: 20.sp,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
           SizedBox(height: 40.h),
           AnimatedBuilder(
             animation: _flowController,
@@ -410,7 +387,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   _buildFlowStep(
                     Icons.sensors,
                     isBangla ? 'ডেটা সংগ্রহ' : 'Data',
-                    isBangla ? 'IoT সেন্সর থেকে' : 'From IoT sensors',
                     Colors.blue,
                     0,
                   ),
@@ -418,7 +394,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   _buildFlowStep(
                     Icons.notification_important,
                     isBangla ? 'সতর্কতা' : 'Warning',
-                    isBangla ? 'AI বিশ্লেষণ' : 'AI analysis',
                     Colors.orange,
                     0.25,
                   ),
@@ -426,7 +401,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   _buildFlowStep(
                     Icons.agriculture,
                     isBangla ? 'কর্ম' : 'Action',
-                    isBangla ? 'তাৎক্ষণিক পদক্ষেপ' : 'Instant steps',
                     Colors.red,
                     0.5,
                   ),
@@ -434,7 +408,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   _buildFlowStep(
                     Icons.check_circle,
                     isBangla ? 'ফসল রক্ষা' : 'Saved',
-                    isBangla ? 'লাভ বৃদ্ধি' : 'Profit increase',
                     Colors.green.shade700,
                     0.75,
                   ),
@@ -447,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildFlowStep(IconData icon, String label, String subtitle, Color color, double delay) {
+  Widget _buildFlowStep(IconData icon, String label, Color color, double delay) {
     final animation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _flowController,
@@ -460,67 +433,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Column(
         children: [
           Container(
-            width: 120.w,
-            height: 120.w,
+            width: 100.w,
+            height: 100.w,
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.5),
-                  blurRadius: 25,
-                  spreadRadius: 8,
+                  color: color.withOpacity(0.4),
+                  blurRadius: 20,
+                  spreadRadius: 5,
                 ),
               ],
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // 3D depth effect - back layer
-                Transform.translate(
-                  offset: const Offset(3, 3),
-                  child: Container(
-                    width: 110.w,
-                    height: 110.w,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-                // Main icon
-                Icon(icon, size: 52.sp, color: Colors.white),
-                // Glossy shine effect
-                Positioned(
-                  top: 15.h,
-                  right: 15.w,
-                  child: Container(
-                    width: 30.w,
-                    height: 30.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: Icon(icon, size: 48.sp, color: Colors.white),
           ),
           SizedBox(height: 15.h),
           Text(
             label,
             style: TextStyle(
-              fontSize: 20.sp,
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
               color: Colors.grey.shade800,
-            ),
-          ),
-          SizedBox(height: 5.h),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey.shade600,
             ),
           ),
         ],
@@ -529,36 +463,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildFlowArrow() {
-    return AnimatedBuilder(
-      animation: _flowController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(_flowController.value * 10, 0),
-          child: Container(
-            width: 50.w,
-            height: 6.h,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.green.shade300,
-                  Colors.green.shade600,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: Stack(
-              alignment: Alignment.centerRight,
-              children: [
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16.sp,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    return Icon(
+      Icons.arrow_forward,
+      size: 36.sp,
+      color: Colors.grey.shade400,
     );
   }
 
@@ -592,67 +500,42 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildMetricCard(String value, String label) {
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        return Transform(
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001) // perspective
-            ..rotateX(_pulseController.value * 0.1)
-            ..rotateY(_pulseController.value * 0.1),
-          alignment: Alignment.center,
-          child: Container(
-            width: 220.w,
-            padding: EdgeInsets.all(35.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-                BoxShadow(
-                  color: Colors.green.shade200.withOpacity(0.5),
-                  blurRadius: 30,
-                  spreadRadius: -5,
-                  offset: const Offset(0, 15),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 48.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
-                    shadows: [
-                      Shadow(
-                        color: Colors.green.shade200,
-                        offset: const Offset(2, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    color: Colors.grey.shade700,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+    return Container(
+      width: 200.w,
+      padding: EdgeInsets.all(30.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 42.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.green.shade700,
             ),
           ),
-        );
-      },
-    );
+          SizedBox(height: 10.h),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 20.sp,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 800.ms).scale(delay: 200.ms);
   }
 
   Widget _buildCallToAction() {
