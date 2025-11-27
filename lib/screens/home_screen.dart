@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import 'package:harvestguard_bd/screens/login_screen.dart';
 import 'package:harvestguard_bd/screens/registration_screen.dart';
@@ -21,6 +22,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _flowController;
   late AnimationController _pulseController;
 
+  String farmerName = "Farmer"; // Default
+  bool isLoadingName = true;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +37,42 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
+
+    _fetchFarmerName();
+  }
+
+  Future<void> _fetchFarmerName() async {
+    final user = AuthService().currentUser;
+    if (user != null) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('farmers')
+            .doc(user.uid)
+            .get();
+        if (doc.exists) {
+          setState(() {
+            farmerName = doc.data()?['name'] ?? "Farmer";
+            isLoadingName = false;
+          });
+        } else {
+          setState(() {
+            farmerName = "Farmer";
+            isLoadingName = false;
+          });
+        }
+      } catch (e) {
+        debugPrint("Error fetching farmer name: $e");
+        setState(() {
+          farmerName = "Farmer";
+          isLoadingName = false;
+        });
+      }
+    } else {
+      setState(() {
+        farmerName = "Farmer";
+        isLoadingName = false;
+      });
+    }
   }
 
   @override
@@ -43,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   bool get isLoggedIn => AuthService().currentUser != null;
-  String get farmerName => AuthService().currentUser?.displayName ?? "";
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +143,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
+          ListTile(
+            leading: Icon(Icons.language, color: Colors.green.shade700),
+            title: Text(isBangla ? "বাংলা" : "English",
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            trailing: Switch(
+              value: isBangla,
+              onChanged: (val) {
+                setState(() {
+                  isBangla = val;
+                });
+              },
+              activeColor: Colors.green.shade700,
+            ),
+          ),
           if (isLoggedIn) ...[
             _buildDrawerItem(Icons.person, isBangla ? "প্রোফাইল" : "Profile", '/profile'),
             _buildDrawerItem(Icons.storage, isBangla ? "ব্যাচ স্ক্রিন" : "Batch Screen", '/batch'),
@@ -111,16 +164,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _buildDrawerItem(Icons.logout, isBangla ? "লগআউট" : "Logout", '/logout'),
           ],
           const Spacer(),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(isBangla ? "English" : "বাংলা"),
-            onTap: () {
-              setState(() {
-                isBangla = !isBangla;
-              });
-              Navigator.pop(context);
-            },
-          ),
         ],
       ),
     );
@@ -133,12 +176,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       onTap: () {
         Navigator.pop(context);
         if (route == '/logout') {
-          AuthService().signOut().then((_) => setState(() {}));
+          AuthService().signOut().then((_) {
+            setState(() {
+              farmerName = "Farmer";
+              isLoadingName = true;
+              _fetchFarmerName();
+            });
+          });
         } else if (route != null) {
           if (route == '/profile') {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen(isBangla: isBangla)));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (_) => ProfileScreen(isBangla: isBangla)));
           } else if (route == '/batch') {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => CropBatchRegistrationScreen(isBangla: isBangla)));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => CropBatchRegistrationScreen(isBangla: isBangla)));
           } else if (route == '/scanner') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ScannerScreen()));
           }
@@ -187,49 +240,61 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
-          isLoggedIn
-              ? Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20.sp,
-                      backgroundColor: Colors.white,
-                      child: Text(
-                        farmerName.isNotEmpty ? farmerName[0].toUpperCase() : "F",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20.sp,
-                          color: Colors.green.shade700,
+          Row(
+            children: [
+              isLoggedIn
+                  ? isLoadingName
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20.sp,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                farmerName.isNotEmpty
+                                    ? farmerName[0].toUpperCase()
+                                    : "F",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20.sp,
+                                    color: Colors.green.shade700),
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              farmerName,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        )
+                  : ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginScreen(isBangla: isBangla)),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green.shade700,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
                         ),
                       ),
+                      child: Text(
+                        isBangla ? 'শুরু করুন' : 'Get Started',
+                        style: TextStyle(
+                            fontSize: 18.sp, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      farmerName,
-                      style: TextStyle(color: Colors.white, fontSize: 20.sp, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                )
-              : ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => LoginScreen(isBangla: isBangla)),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.green.shade700,
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: Text(
-                    isBangla ? 'শুরু করুন' : 'Get Started',
-                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-                  ),
-                ),
+            ],
+          )
         ],
       ),
     );
@@ -239,7 +304,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildHeroSection() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 60.h, horizontal: 40.w),
+      height: 500.h,
+      padding: EdgeInsets.symmetric(horizontal: 40.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.green.shade800, Colors.green.shade500],
@@ -247,67 +313,74 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           end: Alignment.bottomRight,
         ),
       ),
-      child: Column(
-        children: [
-          Text(
-            isBangla
-                ? "খাদ্য বাঁচান • কৃষক বাঁচান • বাংলাদেশ বাঁচান"
-                : "Save Food • Save Farmers • Save Bangladesh",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 38.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              height: 1.3,
-            ),
-          ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2, end: 0),
-          SizedBox(height: 40.h),
-          Container(
-            padding: EdgeInsets.all(20.w),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-            ),
-            child: DefaultTextStyle(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+          children: [
+            Text(
+              isBangla
+                  ? "খাদ্য বাঁচান • কৃষক বাঁচান • বাংলাদেশ বাঁচান"
+                  : "Save Food • Save Farmers • Save Bangladesh",
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 26.sp,
+                fontSize: 38.sp,
+                fontWeight: FontWeight.bold,
                 color: Colors.white,
-                fontWeight: FontWeight.w500,
-                height: 1.5,
+                height: 1.3,
               ),
-              child: AnimatedTextKit(
-                animatedTexts: [
-                  TypewriterAnimatedText(
-                    isBangla
-                        ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
-                        : '4.5 million metric tons of food wasted yearly.',
-                    speed: const Duration(milliseconds: 60),
-                  ),
-                  TypewriterAnimatedText(
-                    isBangla
-                        ? 'কৃষকের লোকসান মানে দেশের ক্ষতি।'
-                        : 'Farmers lose, the nation loses.',
-                    speed: const Duration(milliseconds: 60),
-                  ),
-                  TypewriterAnimatedText(
-                    isBangla
-                        ? 'স্মার্ট প্রযুক্তিতে ফসল রক্ষা করুন।'
-                        : 'Smart technology saves harvests.',
-                    speed: const Duration(milliseconds: 60),
-                  ),
-                ],
-                repeatForever: true,
-                pause: const Duration(milliseconds: 2000),
+            ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2, end: 0),
+            SizedBox(height: 40.h),
+            Container(
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
               ),
-            ),
-          ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
-        ],
+              child: DefaultTextStyle(
+                style: TextStyle(
+                  fontSize: 26.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                ),
+                child: AnimatedTextKit(
+                  animatedTexts: [
+                    TypewriterAnimatedText(
+                      isBangla
+                          ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
+                          : '4.5 million metric tons of food wasted yearly.',
+                      speed: const Duration(milliseconds: 60),
+                    ),
+                    TypewriterAnimatedText(
+                      isBangla
+                          ? 'কৃষকের লোকসান মানে দেশের ক্ষতি।'
+                          : 'Farmers lose, the nation loses.',
+                      speed: const Duration(milliseconds: 60),
+                    ),
+                    TypewriterAnimatedText(
+                      isBangla
+                          ? 'স্মার্ট প্রযুক্তিতে ফসল রক্ষা করুন।'
+                          : 'Smart technology saves harvests.',
+                      speed: const Duration(milliseconds: 60),
+                    ),
+                  ],
+                  repeatForever: true,
+                  pause: const Duration(milliseconds: 2000),
+                ),
+              ),
+            ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
+          ],
+        ),
       ),
     );
   }
 
-  // ... the rest of the code remains unchanged
+  // ================= Problem Statement =================
+  // (The rest of the code remains the same as you provided)
+  
+
+
 
   // ================= Problem Statement =================
   Widget _buildProblemStatement() {
