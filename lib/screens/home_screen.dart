@@ -10,8 +10,31 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool isBangla = true;
+  late AnimationController _flowController;
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _flowController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat();
+    
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _flowController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,337 +45,708 @@ class _HomeScreenState extends State<HomeScreen> {
       splitScreenMode: true,
     );
 
-    List<Map<String, dynamic>> graphData = [
-      {'label': isBangla ? 'খাদ্য নষ্ট' : 'Food Loss', 'value': 45},
-      {'label': isBangla ? 'কৃষকের ক্ষতি' : 'Farmer Loss', 'value': 30},
-      {'label': isBangla ? 'দেশের ক্ষতি' : 'Country Loss', 'value': 25},
-      {'label': isBangla ? 'রক্ষা করা সম্ভব' : 'Can Save', 'value': 60},
-    ];
-
-    List<Map<String, String>> stats = [
-      {
-        'title': isBangla ? 'খাদ্য নষ্ট' : 'Food Waste',
-        'value': isBangla ? '৪৫ লাখ টন' : '4.5M Ton',
-      },
-      {
-        'title': isBangla ? 'কৃষকের ক্ষতি' : 'Farmer Loss',
-        'value': isBangla ? '৩০%' : '30%',
-      },
-      {
-        'title': isBangla ? 'দেশের ক্ষতি' : 'Country Loss',
-        'value': isBangla ? '২৫%' : '25%',
-      },
-      {
-        'title': isBangla ? 'রক্ষা করা সম্ভব' : 'Can Save',
-        'value': isBangla ? '৬০%' : '60%',
-      },
-    ];
-
     return Scaffold(
       backgroundColor: const Color(0xFFF0FFF4),
-
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              child: Center(
-                child: Text(
-                  "HarvestGuardBD",
-                  style: TextStyle(
-                    fontSize: 26.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade800,
-                  ),
-                ),
-              ),
-            ),
-
-            ListTile(
-              title: Text(isBangla ? "প্রোফাইল" : "Profile"),
-              leading: const Icon(Icons.person),
-              onTap: () => Navigator.pushNamed(context, '/profile'),
-            ),
-            ListTile(
-              title: Text(isBangla ? "ব্যাচ স্ক্রিন" : "Batch Screen"),
-              leading: const Icon(Icons.storage),
-              onTap: () => Navigator.pushNamed(context, '/batch'),
-            ),
-            ListTile(
-              title: Text(isBangla ? "স্ক্যানার" : "Scanner"),
-              leading: const Icon(Icons.qr_code_scanner),
-              onTap: () => Navigator.pushNamed(context, '/scanner'),
-            ),
-            ListTile(
-              title: Text(isBangla ? "সেটিংস" : "Settings"),
-              leading: const Icon(Icons.settings),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
-            ),
-            ListTile(
-              title: Text(isBangla ? "লগআউট" : "Logout"),
-              leading: const Icon(Icons.logout),
-              onTap: () {},
-            ),
-
-            const Spacer(),
-
-            ListTile(
-              leading: const Icon(Icons.language),
-              title: Text(isBangla ? "English" : "বাংলা"),
-              onTap: () {
-                setState(() {
-                  isBangla = !isBangla;
-                });
-              },
-            ),
-          ],
-        ),
-      ),
-
+      drawer: _buildDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Container(
-                height: 75.h,
-                padding: EdgeInsets.symmetric(horizontal: 40.w),
-                color: Colors.green.shade700,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Builder(
-                      builder:
-                          (context) => IconButton(
-                            icon: Icon(
-                              Icons.menu,
-                              color: Colors.white,
-                              size: 32.sp,
-                            ),
-                            onPressed: () => Scaffold.of(context).openDrawer(),
-                          ),
-                    ),
+              _buildHeader(),
+              _buildHeroSection(),
+              _buildProblemStatement(),
+              _buildAnimatedFlowVisualization(),
+              _buildImpactMetrics(),
+              _buildCallToAction(),
+              _buildFooter(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                    Text(
-                      'HarvestGuardBD',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/auth');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20.w,
-                          vertical: 12.h,
-                        ),
-                      ),
-                      child: Text(
-                        isBangla ? 'লগইন' : 'Login',
-                        style: TextStyle(
-                          color: Colors.green.shade700,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.green.shade700, Colors.green.shade500],
               ),
-
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(40.w),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.green.shade800, Colors.green.shade400],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.agriculture, size: 48.sp, color: Colors.white),
+                  SizedBox(height: 8.h),
+                  Text(
+                    "HarvestGuardBD",
+                    style: TextStyle(
+                      fontSize: 26.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      isBangla
-                          ? "খাদ্য বাঁচান • কৃষক বাঁচান • বাংলাদেশ বাঁচান"
-                          : "Save Food • Save Farmers • Save Bangladesh",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 34.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-
-                    SizedBox(height: 30.h),
-
-                    DefaultTextStyle(
-                      style: TextStyle(
-                        fontSize: 28.sp,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        height: 1.4,
-                      ),
-                      child: AnimatedTextKit(
-                        animatedTexts: [
-                          TypewriterAnimatedText(
-                            isBangla
-                                ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
-                                : '4.5 million metric tons of food are wasted yearly.',
-                            speed: const Duration(milliseconds: 70),
-                          ),
-                          TypewriterAnimatedText(
-                            isBangla
-                                ? 'কৃষকের লোকসান, দেশের ক্ষতি।'
-                                : 'Farmers lose, the country loses.',
-                            speed: const Duration(milliseconds: 70),
-                          ),
-                          TypewriterAnimatedText(
-                            isBangla
-                                ? 'প্রযুক্তির মাধ্যমে ফসল রক্ষা সম্ভব।'
-                                : 'Technology can protect crops.',
-                            speed: const Duration(milliseconds: 70),
-                          ),
-                        ],
-                        totalRepeatCount: 1,
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
+            ),
+          ),
+          _buildDrawerItem(Icons.person, isBangla ? "প্রোফাইল" : "Profile", '/profile'),
+          _buildDrawerItem(Icons.storage, isBangla ? "ব্যাচ স্ক্রিন" : "Batch Screen", '/batch'),
+          _buildDrawerItem(Icons.qr_code_scanner, isBangla ? "স্ক্যানার" : "Scanner", '/scanner'),
+          _buildDrawerItem(Icons.settings, isBangla ? "সেটিংস" : "Settings", '/settings'),
+          _buildDrawerItem(Icons.logout, isBangla ? "লগআউট" : "Logout", null),
+          const Spacer(),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(isBangla ? "English" : "বাংলা"),
+            onTap: () {
+              setState(() {
+                isBangla = !isBangla;
+              });
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
-              SizedBox(height: 40.h),
+  Widget _buildDrawerItem(IconData icon, String title, String? route) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.green.shade700),
+      title: Text(title, style: TextStyle(fontSize: 16.sp)),
+      onTap: () {
+        if (route != null) {
+          Navigator.pushNamed(context, route);
+        } else {
+          Navigator.pop(context);
+        }
+      },
+    );
+  }
 
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40.w),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children:
-                      stats.map((stat) {
-                        return Expanded(
-                          child: Container(
-                            margin: EdgeInsets.symmetric(horizontal: 10.w),
-                            padding: EdgeInsets.symmetric(vertical: 30.h),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade100,
-                              borderRadius: BorderRadius.circular(16.r),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 10,
-                                  offset: Offset(2, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  stat['value']!,
-                                  style: TextStyle(
-                                    fontSize: 26.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade800,
-                                  ),
-                                ),
-                                SizedBox(height: 10.h),
-                                Text(
-                                  stat['title']!,
-                                  style: TextStyle(
-                                    fontSize: 18.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ).animate().fadeIn(duration: 800.ms),
-                        );
-                      }).toList(),
-                ),
-              ),
-
-              SizedBox(height: 50.h),
-
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40.w),
-                child: Container(
-                  height: 300.h,
-                  padding: EdgeInsets.all(20.w),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 12,
-                        offset: Offset(2, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children:
-                        graphData.map((item) {
-                          double barHeight = item['value'] * 3;
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Container(
-                                width: 40.w,
-                                height: barHeight.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.green.shade700,
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                              ),
-                              SizedBox(height: 10.h),
-                              Text(
-                                item['label'],
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade900,
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                  ),
-                ).animate().fadeIn(duration: 1000.ms),
-              ),
-
-              SizedBox(height: 80.h),
-
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(40.w),
-                color: Colors.green.shade900,
-                child: Column(
-                  children: [
-                    Text(
-                      "HarvestGuardBD – Smart Agriculture Platform",
-                      style: TextStyle(
-                        fontSize: 22.sp,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 20.h),
-                    Text(
-                      "© 2025 HarvestGuardBD. All Rights Reserved.",
-                      style: TextStyle(fontSize: 18.sp, color: Colors.white70),
-                    ),
-                  ],
+  Widget _buildHeader() {
+    return Container(
+      height: 75.h,
+      padding: EdgeInsets.symmetric(horizontal: 40.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade800, Colors.green.shade600],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: Icon(Icons.menu, color: Colors.white, size: 32.sp),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+          Row(
+            children: [
+              Icon(Icons.agriculture, color: Colors.white, size: 32.sp),
+              SizedBox(width: 12.w),
+              Text(
+                'HarvestGuardBD',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28.sp,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
+          ElevatedButton(
+            onPressed: () => Navigator.pushNamed(context, '/auth'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.green.shade700,
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            child: Text(
+              isBangla ? 'শুরু করুন' : 'Get Started',
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 60.h, horizontal: 40.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade800, Colors.green.shade500],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            isBangla
+                ? "খাদ্য বাঁচান • কৃষক বাঁচান • বাংলাদেশ বাঁচান"
+                : "Save Food • Save Farmers • Save Bangladesh",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 38.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              height: 1.3,
+            ),
+          ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2, end: 0),
+          SizedBox(height: 40.h),
+          Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+            ),
+            child: DefaultTextStyle(
+              style: TextStyle(
+                fontSize: 26.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+              ),
+              child: AnimatedTextKit(
+                animatedTexts: [
+                  TypewriterAnimatedText(
+                    isBangla
+                        ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
+                        : '4.5 million metric tons of food wasted yearly.',
+                    speed: const Duration(milliseconds: 60),
+                  ),
+                  TypewriterAnimatedText(
+                    isBangla
+                        ? 'কৃষকের লোকসান মানে দেশের ক্ষতি।'
+                        : 'Farmers lose, the nation loses.',
+                    speed: const Duration(milliseconds: 60),
+                  ),
+                  TypewriterAnimatedText(
+                    isBangla
+                        ? 'স্মার্ট প্রযুক্তিতে ফসল রক্ষা করুন।'
+                        : 'Smart technology saves harvests.',
+                    speed: const Duration(milliseconds: 60),
+                  ),
+                ],
+                repeatForever: true,
+                pause: const Duration(milliseconds: 2000),
+              ),
+            ),
+          ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProblemStatement() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(50.w),
+      color: Colors.white,
+      child: Column(
+        children: [
+          Text(
+            isBangla ? "🚨 সমস্যা" : "🚨 The Problem",
+            style: TextStyle(
+              fontSize: 32.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.red.shade700,
+            ),
+          ),
+          SizedBox(height: 30.h),
+          Container(
+            padding: EdgeInsets.all(30.w),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.red.shade200, width: 2),
+            ),
+            child: Column(
+              children: [
+                _buildProblemCard(
+                  Icons.warning_amber_rounded,
+                  isBangla
+                      ? "প্রতি বছর ৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট"
+                      : "4.5M metric tons of food lost annually",
+                  Colors.orange,
+                ),
+                SizedBox(height: 20.h),
+                _buildProblemCard(
+                  Icons.trending_down,
+                  isBangla
+                      ? "কৃষকরা হাজার কোটি টাকা হারাচ্ছেন"
+                      : "Farmers lose billions in revenue",
+                  Colors.red,
+                ),
+                SizedBox(height: 20.h),
+                _buildProblemCard(
+                  Icons.bug_report,
+                  isBangla
+                      ? "পোকামাকড় ও রোগে ফসল নষ্ট"
+                      : "Pests & diseases destroy crops",
+                  Colors.purple,
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProblemCard(IconData icon, String text, Color color) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(15.w),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: color, size: 32.sp),
+          ),
+          SizedBox(width: 20.w),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedFlowVisualization() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(50.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade50, Colors.blue.shade50],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            isBangla ? "💡 সমাধান" : "💡 The Solution",
+            style: TextStyle(
+              fontSize: 32.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.green.shade800,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            isBangla
+                ? "৪ টি সহজ ধাপে ফসল রক্ষা করুন"
+                : "Protect crops in 4 simple steps",
+            style: TextStyle(
+              fontSize: 20.sp,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 40.h),
+          AnimatedBuilder(
+            animation: _flowController,
+            builder: (context, child) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildFlowStep(
+                    Icons.sensors,
+                    isBangla ? 'ডেটা সংগ্রহ' : 'Data',
+                    isBangla ? 'IoT সেন্সর থেকে' : 'From IoT sensors',
+                    Colors.blue,
+                    0,
+                  ),
+                  _buildFlowArrow(),
+                  _buildFlowStep(
+                    Icons.notification_important,
+                    isBangla ? 'সতর্কতা' : 'Warning',
+                    isBangla ? 'AI বিশ্লেষণ' : 'AI analysis',
+                    Colors.orange,
+                    0.25,
+                  ),
+                  _buildFlowArrow(),
+                  _buildFlowStep(
+                    Icons.agriculture,
+                    isBangla ? 'কর্ম' : 'Action',
+                    isBangla ? 'তাৎক্ষণিক পদক্ষেপ' : 'Instant steps',
+                    Colors.red,
+                    0.5,
+                  ),
+                  _buildFlowArrow(),
+                  _buildFlowStep(
+                    Icons.check_circle,
+                    isBangla ? 'ফসল রক্ষা' : 'Saved',
+                    isBangla ? 'লাভ বৃদ্ধি' : 'Profit increase',
+                    Colors.green.shade700,
+                    0.75,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlowStep(IconData icon, String label, String subtitle, Color color, double delay) {
+    final animation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _flowController,
+        curve: Interval(delay, delay + 0.25, curve: Curves.easeInOut),
+      ),
+    );
+
+    return Transform.scale(
+      scale: animation.value,
+      child: Column(
+        children: [
+          Container(
+            width: 120.w,
+            height: 120.w,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.5),
+                  blurRadius: 25,
+                  spreadRadius: 8,
+                ),
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // 3D depth effect - back layer
+                Transform.translate(
+                  offset: const Offset(3, 3),
+                  child: Container(
+                    width: 110.w,
+                    height: 110.w,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                // Main icon
+                Icon(icon, size: 52.sp, color: Colors.white),
+                // Glossy shine effect
+                Positioned(
+                  top: 15.h,
+                  right: 15.w,
+                  child: Container(
+                    width: 30.w,
+                    height: 30.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 15.h),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          SizedBox(height: 5.h),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlowArrow() {
+    return AnimatedBuilder(
+      animation: _flowController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(_flowController.value * 10, 0),
+          child: Container(
+            width: 50.w,
+            height: 6.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.green.shade300,
+                  Colors.green.shade600,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Stack(
+              alignment: Alignment.centerRight,
+              children: [
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16.sp,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImpactMetrics() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(50.w),
+      color: Colors.green.shade800,
+      child: Column(
+        children: [
+          Text(
+            isBangla ? "আমাদের প্রভাব" : "Our Impact",
+            style: TextStyle(
+              fontSize: 32.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: 40.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildMetricCard("10K+", isBangla ? "কৃষক" : "Farmers"),
+              _buildMetricCard("50K+", isBangla ? "ব্যাচ" : "Batches"),
+              _buildMetricCard("₹5Cr", isBangla ? "সঞ্চয়" : "Saved"),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard(String value, String label) {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        return Transform(
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.001) // perspective
+            ..rotateX(_pulseController.value * 0.1)
+            ..rotateY(_pulseController.value * 0.1),
+          alignment: Alignment.center,
+          child: Container(
+            width: 220.w,
+            padding: EdgeInsets.all(35.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: Colors.green.shade200.withOpacity(0.5),
+                  blurRadius: 30,
+                  spreadRadius: -5,
+                  offset: const Offset(0, 15),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 48.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade700,
+                    shadows: [
+                      Shadow(
+                        color: Colors.green.shade200,
+                        offset: const Offset(2, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCallToAction() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 80.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade600, Colors.green.shade800],
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            isBangla ? "আজই শুরু করুন" : "Start Protecting Today",
+            style: TextStyle(
+              fontSize: 36.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: 30.h),
+          AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: 1.0 + (_pulseController.value * 0.05),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, '/auth'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.green.shade700,
+                    padding: EdgeInsets.symmetric(horizontal: 60.w, vertical: 25.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(35),
+                    ),
+                    elevation: 10,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isBangla ? 'বিনামূল্যে নিবন্ধন করুন' : 'Register Free',
+                        style: TextStyle(
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 15.w),
+                      Icon(Icons.arrow_forward, size: 28.sp),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(40.w),
+      color: Colors.grey.shade900,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.agriculture, color: Colors.white, size: 28.sp),
+              SizedBox(width: 12.w),
+              Text(
+                "HarvestGuardBD",
+                style: TextStyle(
+                  fontSize: 24.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 15.h),
+          Text(
+            isBangla ? "স্মার্ট কৃষি প্ল্যাটফর্ম" : "Smart Agriculture Platform",
+            style: TextStyle(fontSize: 18.sp, color: Colors.white70),
+          ),
+          SizedBox(height: 25.h),
+          Text(
+            "© 2025 HarvestGuardBD. All Rights Reserved.",
+            style: TextStyle(fontSize: 16.sp, color: Colors.white60),
+          ),
+        ],
       ),
     );
   }
