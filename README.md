@@ -80,9 +80,4 @@ Using **PlantNet.org API**:
 
 ---
 
-## ⚙️ Installation & Setup
 
-### 1️⃣ Clone the Repository
-```bash
-git clone https://github.com/yourusername/harvestguard.git
-cd harvestguard
