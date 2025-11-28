@@ -1,36 +1,8 @@
-
-
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img;
-
-void main() {
-  runApp(const CropHealthScannerApp());
-}
-
-class CropHealthScannerApp extends StatelessWidget {
-  const CropHealthScannerApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Crop Health Scanner',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.light,
-        ),
-      ),
-      home: const ScannerScreen(),
-    );
-  }
-}
+import 'dart:typed_data';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({Key? key}) : super(key: key);
@@ -40,168 +12,96 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  File? _imageFile;
-  bool _isAnalyzing = false;
+  Uint8List? _imageBytes;
+  bool _isLoading = false;
   String? _result;
   double? _confidence;
   final ImagePicker _picker = ImagePicker();
 
-  // Using HuggingFace API for demonstration
-  // Replace with your actual API endpoint
-  static const String apiUrl = 'https://api-inference.huggingface.co/models/linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification';
-  static const String apiToken = 'YOUR_HUGGINGFACE_TOKEN'; // Replace with your token
+  // HuggingFace API endpoint - using image classification model
+  static const String _apiUrl =
+      'https://api-inference.huggingface.co/models/google/vit-base-patch16-224';
+  static const String _apiToken = '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'; // Replace with your token
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
+      final XFile? image = await _picker.pickImage(source: source);
+      if (image != null) {
+        final bytes = await image.readAsBytes();
         setState(() {
-          _imageFile = File(pickedFile.path);
-          _result = null;
+          _imageBytes = bytes;
+          _result = null; // Clear previous result
           _confidence = null;
         });
-        
-        // Automatically analyze after image selection
-        _analyzeImage();
+        _analyzeImage(bytes);
       }
     } catch (e) {
-      _showErrorDialog('Error picking image: $e');
+      _showError('Error picking image: $e');
     }
   }
 
-  Future<void> _analyzeImage() async {
-    if (_imageFile == null) return;
-
-    setState(() {
-      _isAnalyzing = true;
-      _result = null;
-      _confidence = null;
-    });
+  Future<void> _analyzeImage(Uint8List bytes) async {
+    setState(() => _isLoading = true);
 
     try {
-      // Read and compress image
-      final bytes = await _imageFile!.readAsBytes();
-      
-      // Optimize image size for faster upload
-      final image = img.decodeImage(bytes);
-      final resized = img.copyResize(image!, width: 224);
-      final compressed = img.encodeJpg(resized, quality: 85);
-
       // Call HuggingFace API
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse(_apiUrl),
         headers: {
-          'Authorization': 'Bearer $apiToken',
+          'Authorization': 'Bearer $_apiToken',
           'Content-Type': 'application/octet-stream',
         },
-        body: compressed,
+        body: bytes,
       ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
-        final List<dynamic> predictions = json.decode(response.body);
-        
-        if (predictions.isNotEmpty) {
-          // Get top prediction
-          final topPrediction = predictions[0];
-          final label = topPrediction['label'] as String;
-          final score = topPrediction['score'] as double;
-
-          // Simplify result to Fresh or Rotten
-          final simplifiedResult = _simplifyResult(label);
-
-          setState(() {
-            _result = simplifiedResult;
-            _confidence = score;
-            _isAnalyzing = false;
-          });
-        }
+        final List<dynamic> predictions = jsonDecode(response.body);
+        _processPredictions(predictions);
       } else {
-        throw Exception('API Error: ${response.statusCode}');
+        _showError('API Error: ${response.statusCode}');
       }
     } catch (e) {
-      setState(() {
-        _isAnalyzing = false;
-      });
-      _showErrorDialog('Analysis failed: $e\n\nTip: Make sure to add your HuggingFace API token');
+      _showError('Error analyzing image: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
-  String _simplifyResult(String label) {
-    // Convert detailed disease labels to simple Fresh/Rotten classification
-    final lowerLabel = label.toLowerCase();
-    
-    if (lowerLabel.contains('healthy') || 
-        lowerLabel.contains('fresh') ||
-        lowerLabel == 'healthy') {
-      return 'Fresh';
-    } else {
-      return 'Rotten';
+  void _processPredictions(List<dynamic> predictions) {
+    // Look for "Fresh" or "Rotten" labels in predictions
+    String status = 'Unknown';
+    double maxScore = 0;
+
+    for (var prediction in predictions) {
+      final label = prediction['label']?.toString().toLowerCase() ?? '';
+      final score = (prediction['score'] as num?)?.toDouble() ?? 0;
+
+      if (label.contains('fresh') || label.contains('rotten')) {
+        if (score > maxScore) {
+          maxScore = score;
+          status = label.contains('fresh') ? 'Fresh' : 'Rotten';
+        }
+      }
     }
+
+    setState(() {
+      _result = status;
+      _confidence = (maxScore * 100).round() / 100;
+    });
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
-  void _showImageSourceDialog() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Select Image Source',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Colors.green),
-                title: const Text('Camera'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.green),
-                title: const Text('Gallery'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _clearImage() {
+    setState(() {
+      _imageBytes = null;
+      _result = null;
+      _confidence = null;
+    });
   }
 
   @override
@@ -210,198 +110,238 @@ class _ScannerScreenState extends State<ScannerScreen> {
       appBar: AppBar(
         title: const Text('Crop Health Scanner'),
         centerTitle: true,
-        elevation: 0,
+        backgroundColor: Colors.green[700],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Image Preview Card
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Container(
-                    height: 350,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.grey[100],
-                    ),
-                    child: _imageFile != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: Image.file(
-                              _imageFile!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.image_outlined,
-                                  size: 80,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No image selected',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                  ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header
+              Text(
+                'Upload a crop photo to check its health status',
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              // Image preview container
+              Container(
+                height: 300,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.grey[100],
                 ),
-                
-                const SizedBox(height: 24),
-
-                // Analysis Result Card
-                if (_result != null || _isAnalyzing)
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: _isAnalyzing
-                          ? Column(
-                              children: const [
-                                CircularProgressIndicator(),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Analyzing crop health...',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ],
-                            )
-                          : Column(
-                              children: [
-                                Icon(
-                                  _result == 'Fresh'
-                                      ? Icons.check_circle
-                                      : Icons.warning,
-                                  size: 60,
-                                  color: _result == 'Fresh'
-                                      ? Colors.green
-                                      : Colors.orange,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Status: $_result',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: _result == 'Fresh'
-                                        ? Colors.green
-                                        : Colors.orange,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Confidence: ${(_confidence! * 100).toStringAsFixed(1)}%',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                              ],
+                child: _imageBytes != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.memory(_imageBytes!, fit: BoxFit.cover),
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.image_not_supported,
+                              size: 80,
+                              color: Colors.grey[400],
                             ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No image selected',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 24),
+
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.camera),
+                      icon: const Icon(Icons.camera_alt),
+                      label: const Text('Camera'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-
-                const SizedBox(height: 24),
-
-                // Action Buttons
-                ElevatedButton.icon(
-                  onPressed: _isAnalyzing ? null : _showImageSourceDialog,
-                  icon: const Icon(Icons.add_a_photo),
-                  label: Text(
-                    _imageFile == null ? 'Select Image' : 'Change Image',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.gallery),
+                      icon: const Icon(Icons.photo_library),
+                      label: const Text('Gallery'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-                ),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-                if (_imageFile != null && _result == null && !_isAnalyzing)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: OutlinedButton.icon(
-                      onPressed: _analyzeImage,
-                      icon: const Icon(Icons.analytics),
-                      label: const Text(
-                        'Analyze Crop',
+              // Loading indicator
+              if (_isLoading)
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Analyzing crop health...',
                         style: TextStyle(fontSize: 16),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      const SizedBox(height: 8),
+                      Text(
+                        'This may take up to 30 seconds',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
                         ),
                       ),
-                    ),
+                    ],
                   ),
+                ),
 
-                const SizedBox(height: 24),
-
-                // Info Card
-                Card(
-                  color: Colors.blue[50],
-                  shape: RoundedRectangleBorder(
+              // Results card
+              if (_result != null && !_isLoading) ...[
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: _result == 'Fresh' ? Colors.green[50] : Colors.red[50],
+                    border: Border.all(
+                      color: _result == 'Fresh' ? Colors.green[700]! : Colors.red[700]!,
+                      width: 2,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, color: Colors.blue[700]),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Upload a clear photo of your crop for accurate health analysis',
-                            style: TextStyle(
-                              color: Colors.blue[900],
-                              fontSize: 14,
+                  child: Column(
+                    children: [
+                      // Status indicator icon
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _result == 'Fresh' ? Colors.green : Colors.red,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            _result == 'Fresh'
+                                ? Icons.check_circle_outline
+                                : Icons.warning_outlined,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Status text
+                      Text(
+                        _result == 'Fresh' ? 'Crop is Fresh ✓' : 'Crop is Rotten ✗',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: _result == 'Fresh' ? Colors.green[700] : Colors.red[700],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Confidence score
+                      Text(
+                        'Confidence: ${(_confidence! * 100).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        height: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Colors.grey[300],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: _confidence,
+                            backgroundColor: Colors.grey[300],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _result == 'Fresh' ? Colors.green : Colors.red,
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Clear button
+                      ElevatedButton(
+                        onPressed: _clearImage,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[600],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: const Text('Scan Another Crop'),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 24),
               ],
-            ),
+
+              // Info card
+              if (_imageBytes == null && _result == null)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    border: Border.all(color: Colors.blue[300]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'How it works:',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[900],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '1. Take or select a photo of your crop\n'
+                        '2. AI will analyze the image\n'
+                        '3. Get instant health status (Fresh/Rotten)',
+                        style: TextStyle(color: Colors.blue[800]),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ),
       ),
     );
-  }
-}
-
-// Alternative: Mock API implementation for testing without API key
-class MockAnalysisService {
-  static Future<Map<String, dynamic>> analyzeCrop() async {
-    // Simulate API delay
-    await Future.delayed(const Duration(seconds: 2));
-    
-    // Mock response
-    return {
-      'result': 'Fresh',
-      'confidence': 0.92,
-    };
   }
 }
