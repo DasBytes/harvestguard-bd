@@ -21,7 +21,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // HuggingFace API endpoint - using image classification model
   static const String _apiUrl =
       'https://api-inference.huggingface.co/models/google/vit-base-patch16-224';
-  static const String _apiToken = ''; // Replace with your token
+  static const String _apiToken = '';
 
   Future<void> _pickImage(ImageSource source) async {
     try {
