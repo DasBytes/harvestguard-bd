@@ -311,159 +311,238 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // ================= Hero Section =================
-  Widget _buildHeroSection() {
-    return Container(
-      width: double.infinity,
-      height: 500.h,
-      padding: EdgeInsets.symmetric(horizontal: 40.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green.shade800, Colors.green.shade500],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+// ================= Hero Section =================
+Widget _buildHeroSection() {
+  return Container(
+    width: double.infinity,
+    height: 500.h,
+    padding: EdgeInsets.symmetric(horizontal: 40.w),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.green.shade900, Colors.green.shade600],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              isBangla
-                  ? "খাদ্য বাঁচান • কৃষক বাঁচান • বাংলাদেশ বাঁচান"
-                  : "Save Food • Save Farmers • Save Bangladesh",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 38.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                height: 1.3,
-              ),
-            ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2, end: 0),
-            SizedBox(height: 40.h),
-            Container(
-              padding: EdgeInsets.all(20.w),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-              ),
-              child: DefaultTextStyle(
-                style: TextStyle(
-                  fontSize: 26.sp,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  height: 1.5,
-                ),
-                child: AnimatedTextKit(
-                  animatedTexts: [
-                    TypewriterAnimatedText(
-                      isBangla
-                          ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
-                          : '4.5 million metric tons of food wasted yearly.',
-                      speed: const Duration(milliseconds: 60),
-                    ),
-                    TypewriterAnimatedText(
-                      isBangla
-                          ? 'কৃষকের লোকসান মানে দেশের ক্ষতি।'
-                          : 'Farmers lose, the nation loses.',
-                      speed: const Duration(milliseconds: 60),
-                    ),
-                    TypewriterAnimatedText(
-                      isBangla
-                          ? 'স্মার্ট প্রযুক্তিতে ফসল রক্ষা করুন।'
-                          : 'Smart technology saves harvests.',
-                      speed: const Duration(milliseconds: 60),
-                    ),
-                  ],
-                  repeatForever: true,
-                  pause: const Duration(milliseconds: 2000),
-                ),
-              ),
-            ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ================= Problem Statement =================
-  Widget _buildProblemStatement() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(50.w),
-      color: Colors.white,
+    ),
+    child: Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            isBangla ? "🚨 সমস্যা" : "🚨 The Problem",
+            isBangla
+                ? "খাদ্য বাঁচান •  বাংলাদেশ বাঁচান"
+                : "Save Food •  Save Bangladesh",
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 32.sp,
+              fontSize: 38.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.red.shade700,
-            ),
-          ),
-          SizedBox(height: 30.h),
-          Container(
-            padding: EdgeInsets.all(30.w),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.red.shade200, width: 2),
-            ),
-            child: Column(
-              children: [
-                _buildProblemCard(Icons.warning_amber_rounded,
-                    isBangla ? "প্রতি বছর ৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট" : "4.5M metric tons of food lost annually", Colors.orange),
-                SizedBox(height: 20.h),
-                _buildProblemCard(Icons.trending_down,
-                    isBangla ? "কৃষকরা হাজার কোটি টাকা হারাচ্ছেন" : "Farmers lose billions in revenue", Colors.red),
-                SizedBox(height: 20.h),
-                _buildProblemCard(Icons.bug_report,
-                    isBangla ? "পোকামাকড় ও রোগে ফসল নষ্ট" : "Pests & diseases destroy crops", Colors.purple),
+              color: Colors.white,
+              height: 1.3,
+              shadows: [
+                Shadow(
+                  offset: Offset(2, 2),
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.4),
+                ),
+                Shadow(
+                  offset: Offset(-2, -2),
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.2),
+                ),
               ],
             ),
-          ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProblemCard(IconData icon, String text, Color color) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
+          ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2, end: 0),
+          SizedBox(height: 40.h),
           Container(
-            padding: EdgeInsets.all(15.w),
+            padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0.1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  offset: Offset(4, 6),
+                  blurRadius: 12,
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.15),
+                  offset: Offset(-4, -6),
+                  blurRadius: 12,
+                ),
+              ],
             ),
-            child: Icon(icon, color: color, size: 32.sp),
-          ),
-          SizedBox(width: 20.w),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600, color: Colors.grey.shade800),
+            child: DefaultTextStyle(
+              style: TextStyle(
+                fontSize: 26.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+              ),
+              child: AnimatedTextKit(
+                animatedTexts: [
+                  TypewriterAnimatedText(
+                    isBangla
+                        ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
+                        : '4.5 million metric tons of food wasted yearly.',
+                    speed: const Duration(milliseconds: 60),
+                  ),
+                  TypewriterAnimatedText(
+                    isBangla
+                        ? 'কৃষকের লোকসান মানে দেশের ক্ষতি।'
+                        : 'Farmers lose, the nation loses.',
+                    speed: const Duration(milliseconds: 60),
+                  ),
+                  TypewriterAnimatedText(
+                    isBangla
+                        ? 'স্মার্ট প্রযুক্তিতে ফসল রক্ষা করুন।'
+                        : 'Smart technology saves harvests.',
+                    speed: const Duration(milliseconds: 60),
+                  ),
+                ],
+                repeatForever: true,
+                pause: const Duration(milliseconds: 2000),
+              ),
             ),
-          ),
+          ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+// ================= Problem Statement =================
+Widget _buildProblemStatement() {
+  return Container(
+    width: double.infinity,
+    padding: EdgeInsets.all(50.w),
+    color: Colors.grey.shade50,
+    child: Column(
+      children: [
+        Text(
+          isBangla ? "🚨 সমস্যা" : "🚨 The Problem",
+          style: TextStyle(
+            fontSize: 32.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.red.shade700,
+            shadows: [
+              Shadow(
+                offset: Offset(2, 2),
+                blurRadius: 4,
+                color: Colors.red.withOpacity(0.4),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 30.h),
+        Container(
+          padding: EdgeInsets.all(30.w),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.red.shade50, Colors.red.shade100],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.red.shade200.withOpacity(0.5),
+                offset: Offset(6, 6),
+                blurRadius: 16,
+              ),
+              BoxShadow(
+                color: Colors.white.withOpacity(0.8),
+                offset: Offset(-6, -6),
+                blurRadius: 16,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildProblemCard(Icons.warning_amber_rounded,
+                  isBangla ? "প্রতি বছর ৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট" : "4.5M metric tons of food lost annually", Colors.orange),
+              SizedBox(height: 20.h),
+              _buildProblemCard(Icons.trending_down,
+                  isBangla ? "কৃষকরা হাজার কোটি টাকা হারাচ্ছেন" : "Farmers lose billions in revenue", Colors.red),
+              SizedBox(height: 20.h),
+              _buildProblemCard(Icons.bug_report,
+                  isBangla ? "পোকামাকড় ও রোগে ফসল নষ্ট" : "Pests & diseases destroy crops", Colors.purple),
+            ],
+          ),
+        ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
+      ],
+    ),
+  );
+}
+
+Widget _buildProblemCard(IconData icon, String text, Color color) {
+  return Container(
+    padding: EdgeInsets.all(20.w),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.white, Colors.grey.shade100],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: color.withOpacity(0.3),
+          blurRadius: 12,
+          offset: Offset(6, 6),
+        ),
+        BoxShadow(
+          color: Colors.white.withOpacity(0.8),
+          blurRadius: 12,
+          offset: Offset(-6, -6),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(15.w),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.3), color.withOpacity(0.1)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.4),
+                blurRadius: 10,
+                offset: Offset(4, 4),
+              ),
+              BoxShadow(
+                color: Colors.white.withOpacity(0.6),
+                blurRadius: 10,
+                offset: Offset(-4, -4),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: color, size: 32.sp),
+        ),
+        SizedBox(width: 20.w),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 // ================= Flow Visualization =================
 Widget _buildAnimatedFlowVisualization() {
   return Container(
