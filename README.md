@@ -1,9 +1,10 @@
 # 🌾 HarvestGuard – Smart Crop Protection & Weather-Aware Farming Assistant
 
 **HarvestGuard** is a mobile app built using **Flutter**, **Firebase**, **OpenWeather API**, and **PlantNet API**, designed to help Bangladeshi farmers reduce food loss. The app provides hyper-local weather forecasts, crop batch monitoring, health scanning, and offline-safe data management to protect harvested crops and maximize profits.
+**Live Deployed App:** https://harvestguard-bd.netlify.app/
 
 ---
-
+ 
 ## 🚀 Core Features
 
 ### 🔥 1. Storytelling Landing Page
@@ -129,3 +130,4 @@ Supports Bangla and English languages
 Offline-safe mode preserves data without internet
 
 Designed to reduce food loss by up to 40% and maximize farmer profits
+
