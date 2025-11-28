@@ -118,7 +118,7 @@ flutter run
 
 👥 Team Members
 Name	                       
-Sadrib shaiyan and salmee Islam : Flutter Developer / UI/UX
+Sadrib Shaiyan Islam and Mohammad Saad Salmee : Flutter Developer / UI/UX
 Pranta Das  :	Backend & Firebase Setup and API Integration & Testing
 	
 
