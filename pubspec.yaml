@@ -47,6 +47,10 @@ dependencies:
   cloud_firestore: ^6.1.0
   hive_flutter: ^1.1.0
   font_awesome_flutter: 10.9.1
+  shared_preferences: ^2.5.3
+  http: ^1.6.0
+  image: ^4.1.3
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

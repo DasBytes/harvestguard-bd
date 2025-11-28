@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-             CropBatchRegistrationScreen(isBangla: widget.isBangla),
+              CropBatchRegistrationScreen(isBangla: widget.isBangla),
         ),
       );
     } else {
@@ -111,11 +111,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white, // ✅ ensures text is visible
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(widget.isBangla ? "লগইন" : "Login"),
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          widget.isBangla ? "লগইন" : "Login",
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18), // ✅ text visible
+                        ),
                 ),
               ),
               const SizedBox(height: 16),

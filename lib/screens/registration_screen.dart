@@ -99,11 +99,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 14)),
+                    backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white, // ✅ ensures text visible
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(widget.isBangla ? "নিবন্ধন করুন" : "Register"),
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          widget.isBangla ? "নিবন্ধন করুন" : "Register",
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18), // ✅ text visible
+                        ),
                 ),
               ),
               TextButton(
