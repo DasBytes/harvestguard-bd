@@ -12,7 +12,6 @@ import 'package:harvestguard_bd/screens/scanner_screen.dart';
 import 'package:harvestguard_bd/screens/dashboard_screen.dart';
 
 // ==================== Home Screen ====================
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -87,35 +86,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   bool get isLoggedIn => AuthService().currentUser != null;
 
-  @override
-  Widget build(BuildContext context) {
-    ScreenUtil.init(
-      context,
-      designSize: const Size(1200, 800),
-      minTextAdapt: true,
-      splitScreenMode: true,
-    );
+@override
+Widget build(BuildContext context) {
+  final isMobile = MediaQuery.of(context).size.width < 600;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0FFF4),
-      drawer: _buildDrawer(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildHeroSection(),
-              _buildProblemStatement(),
-              _buildAnimatedFlowVisualization(),
-              _buildImpactMetrics(),
-              if (!isLoggedIn) _buildCallToAction(),
-              _buildFooter(),
-            ],
-          ),
+  ScreenUtil.init(
+    context,
+    designSize: isMobile
+        ? const Size(390, 844)   // ✅ FIXED
+        : const Size(1200, 800), // ✅ ORIGINAL
+    minTextAdapt: true,
+    splitScreenMode: true,
+  );
+
+  return Scaffold(
+    backgroundColor: const Color(0xFFF0FFF4),
+    drawer: _buildDrawer(),
+    body: SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeader(),
+            _buildHeroSection(),
+            _buildProblemStatement(),
+            _buildAnimatedFlowVisualization(),
+            _buildImpactMetrics(),
+            if (!isLoggedIn) _buildCallToAction(),
+            _buildFooter(),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   // ================= Drawer =================
   Widget _buildDrawer() {
@@ -210,210 +214,212 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       },
     );
   }
+  
+// ================= Header (MOBILE FIXED) =================
+Widget _buildHeader() {
+  final isMobile = MediaQuery.of(context).size.width < 600;
 
-  // ================= Header =================
-  Widget _buildHeader() {
-    return Container(
-      height: 75.h,
-      padding: EdgeInsets.symmetric(horizontal: 40.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green.shade800, Colors.green.shade600],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+  return Container(
+    height: isMobile ? 62.h : 75.h, // ✅ mobile height fix
+    padding: EdgeInsets.symmetric(horizontal: isMobile ? 16.w : 40.w), // ✅ mobile padding fix
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.green.shade800, Colors.green.shade600],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu, color: Colors.white, size: 32.sp),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        // ✅ MENU
+        Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white, size: isMobile ? 24.sp : 32.sp),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-          Row(
+        ),
+
+        SizedBox(width: 8.w),
+
+        // ✅ LOGO + TITLE (FLEXIBLE)
+        Expanded(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.agriculture, color: Colors.white, size: 32.sp),
-              SizedBox(width: 12.w),
-              Text(
-                'HarvestGuardBD',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.bold,
+              Icon(Icons.agriculture, color: Colors.white, size: isMobile ? 22.sp : 32.sp),
+              SizedBox(width: 8.w),
+              Flexible(
+                child: Text(
+                  'HarvestGuardBD',
+                  overflow: TextOverflow.ellipsis, // ✅ prevent overflow
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isMobile ? 18.sp : 28.sp, // ✅ mobile font fix
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
           ),
-          Row(
-            children: [
-              isLoggedIn
-                  ? isLoadingName
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 20.sp,
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                farmerName.isNotEmpty
-                                    ? farmerName[0].toUpperCase()
-                                    : "F",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20.sp,
-                                    color: Colors.green.shade700),
+        ),
+
+        // ✅ RIGHT SIDE (PROFILE / BUTTON)
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            isLoggedIn
+                ? isLoadingName
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : Row(
+                        children: [
+                          CircleAvatar(
+                            radius: isMobile ? 14.sp : 20.sp, // ✅ mobile fix
+                            backgroundColor: Colors.white,
+                            child: Text(
+                              farmerName.isNotEmpty
+                                  ? farmerName[0].toUpperCase()
+                                  : "F",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: isMobile ? 14.sp : 20.sp,
+                                color: Colors.green.shade700,
                               ),
                             ),
+                          ),
+                          if (!isMobile) ...[
                             SizedBox(width: 8.w),
                             Text(
                               farmerName,
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20.sp,
-                                  fontWeight: FontWeight.bold),
+                                color: Colors.white,
+                                fontSize: 20.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
-                        )
-                  : ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => LoginScreen(isBangla: isBangla)),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.green.shade700,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+                        ],
+                      )
+                : ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LoginScreen(isBangla: isBangla),
                         ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.green.shade700,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 14.w : 24.w,
+                        vertical: isMobile ? 8.h : 14.h,
                       ),
-                      child: Text(
-                        isBangla ? 'শুরু করুন' : 'Get Started',
-                        style: TextStyle(
-                            fontSize: 18.sp, fontWeight: FontWeight.bold),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-// ================= Hero Section =================
-Widget _buildHeroSection() {
-  return Container(
-    width: double.infinity,
-    height: 500.h,
-    padding: EdgeInsets.symmetric(horizontal: 40.w),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Colors.green.shade900, Colors.green.shade600],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-    child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            isBangla
-                ? "খাদ্য বাঁচান •  বাংলাদেশ বাঁচান"
-                : "Save Food •  Save Bangladesh",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 38.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              height: 1.3,
-              shadows: [
-                Shadow(
-                  offset: Offset(2, 2),
-                  blurRadius: 4,
-                  color: Colors.black.withOpacity(0.4),
-                ),
-                Shadow(
-                  offset: Offset(-2, -2),
-                  blurRadius: 4,
-                  color: Colors.black.withOpacity(0.2),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2, end: 0),
-          SizedBox(height: 40.h),
-          Container(
-            padding: EdgeInsets.all(20.w),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0.1)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  offset: Offset(4, 6),
-                  blurRadius: 12,
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.15),
-                  offset: Offset(-4, -6),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: DefaultTextStyle(
-              style: TextStyle(
-                fontSize: 26.sp,
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-                height: 1.5,
-              ),
-              child: AnimatedTextKit(
-                animatedTexts: [
-                  TypewriterAnimatedText(
-                    isBangla
-                        ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
-                        : '4.5 million metric tons of food wasted yearly.',
-                    speed: const Duration(milliseconds: 60),
+                    child: Text(
+                      isBangla ? 'শুরু করুন' : 'Get Started',
+                      style: TextStyle(
+                        fontSize: isMobile ? 14.sp : 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  TypewriterAnimatedText(
-                    isBangla
-                        ? 'কৃষকের লোকসান মানে দেশের ক্ষতি।'
-                        : 'Farmers lose, the nation loses.',
-                    speed: const Duration(milliseconds: 60),
-                  ),
-                  TypewriterAnimatedText(
-                    isBangla
-                        ? 'স্মার্ট প্রযুক্তিতে ফসল রক্ষা করুন।'
-                        : 'Smart technology saves harvests.',
-                    speed: const Duration(milliseconds: 60),
-                  ),
-                ],
-                repeatForever: true,
-                pause: const Duration(milliseconds: 2000),
-              ),
-            ),
-          ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
-        ],
-      ),
+          ],
+        ),
+      ],
     ),
   );
 }
+
+
+  // ================= Hero Section =================
+  Widget _buildHeroSection() {
+    return Container(
+      width: double.infinity,
+      height: 500.h,
+      padding: EdgeInsets.symmetric(horizontal: 40.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade800, Colors.green.shade500],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              isBangla
+                  ? "খাদ্য বাঁচান • কৃষক বাঁচান • বাংলাদেশ বাঁচান"
+                  : "Save Food • Save Farmers • Save Bangladesh",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 38.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                height: 1.3,
+              ),
+            ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2, end: 0),
+            SizedBox(height: 40.h),
+            Container(
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+              ),
+              child: DefaultTextStyle(
+                style: TextStyle(
+                  fontSize: 26.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                ),
+                child: AnimatedTextKit(
+                  animatedTexts: [
+                    TypewriterAnimatedText(
+                      isBangla
+                          ? '৪৫ লাখ মেট্রিক টন খাদ্য নষ্ট হচ্ছে প্রতি বছর।'
+                          : '4.5 million metric tons of food wasted yearly.',
+                      speed: const Duration(milliseconds: 60),
+                    ),
+                    TypewriterAnimatedText(
+                      isBangla
+                          ? 'কৃষকের লোকসান মানে দেশের ক্ষতি।'
+                          : 'Farmers lose, the nation loses.',
+                      speed: const Duration(milliseconds: 60),
+                    ),
+                    TypewriterAnimatedText(
+                      isBangla
+                          ? 'স্মার্ট প্রযুক্তিতে ফসল রক্ষা করুন।'
+                          : 'Smart technology saves harvests.',
+                      speed: const Duration(milliseconds: 60),
+                    ),
+                  ],
+                  repeatForever: true,
+                  pause: const Duration(milliseconds: 2000),
+                ),
+              ),
+            ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
+          ],
+        ),
+      ),
+    );
+  }
 
 // ================= Problem Statement =================
 Widget _buildProblemStatement() {
@@ -479,70 +485,41 @@ Widget _buildProblemStatement() {
   );
 }
 
-Widget _buildProblemCard(IconData icon, String text, Color color) {
-  return Container(
-    padding: EdgeInsets.all(20.w),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Colors.white, Colors.grey.shade100],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+  Widget _buildProblemCard(IconData icon, String text, Color color) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: color.withOpacity(0.3),
-          blurRadius: 12,
-          offset: Offset(6, 6),
-        ),
-        BoxShadow(
-          color: Colors.white.withOpacity(0.8),
-          blurRadius: 12,
-          offset: Offset(-6, -6),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(15.w),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color.withOpacity(0.3), color.withOpacity(0.1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(15.w),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.4),
-                blurRadius: 10,
-                offset: Offset(4, 4),
-              ),
-              BoxShadow(
-                color: Colors.white.withOpacity(0.6),
-                blurRadius: 10,
-                offset: Offset(-4, -4),
-              ),
-            ],
+            child: Icon(icon, color: color, size: 32.sp),
           ),
-          child: Icon(icon, color: color, size: 32.sp),
-        ),
-        SizedBox(width: 20.w),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
+          SizedBox(width: 20.w),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600, color: Colors.grey.shade800),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 // ================= Flow Visualization =================
 Widget _buildAnimatedFlowVisualization() {
   return Container(
@@ -642,316 +619,262 @@ Widget _buildAnimatedFlowVisualization() {
   );
 }
 
+  // ================= Flow Step =================
+  Widget _buildFlowStep(
+    IconData icon,
+    String label,
+    String description,
+    Color color,
+    double delay,
+    String step,
+  ) {
+    final animation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _flowController,
+        curve: Interval(delay, delay + 0.25, curve: Curves.easeInOut),
+      ),
+    );
 
-// ================= Flow Step (RESIZED TO FIT SCREEN) =================
-Widget _buildFlowStep(
-  IconData icon,
-  String label,
-  String description,
-  Color color,
-  double delay,
-  String step,
-) {
-  final animation = Tween<double>(begin: 0.9, end: 1.0).animate(
-    CurvedAnimation(
-      parent: _flowController,
-      curve: Interval(delay, delay + 0.25, curve: Curves.easeInOut),
-    ),
-  );
-
-  return Transform.scale(
-    scale: animation.value,
-    child: Column(
-      children: [
-        Stack(
-          alignment: Alignment.topRight,
-          children: [
-            Container(
-              width: 110.w,   // ✅ Fits screen properly
-              height: 110.w,  // ✅ Fits screen properly
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withOpacity(0.35),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  )
-                ],
-              ),
-              child: Icon(
-                icon,
-                size: 52.sp,  // ✅ Balanced icon size
-                color: Colors.white,
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(10.w),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                step,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
+    return Transform.scale(
+      scale: animation.value,
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Container(
+                width: 110.w,
+                height: 110.w,
+                decoration: BoxDecoration(
                   color: color,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.35),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    )
+                  ],
+                ),
+                child: Icon(
+                  icon,
+                  size: 52.sp,
+                  color: Colors.white,
                 ),
               ),
-            ),
-          ],
-        ),
-
-        SizedBox(height: 18.h),
-
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 20.sp,   // ✅ Bigger but safe
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade800,
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  step,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
           ),
-          textAlign: TextAlign.center,
-        ),
-
-        SizedBox(height: 8.h),
-
-        SizedBox(
-          width: 210.w,    // ✅ Prevents overflow
-          child: Text(
-            description,
+          SizedBox(height: 18.h),
+          Text(
+            label,
             style: TextStyle(
-              fontSize: 15.sp, // ✅ Bigger but safe
-              height: 1.45,
-              color: Colors.grey.shade600,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
             ),
             textAlign: TextAlign.center,
           ),
-        ),
-      ],
-    ),
-  );
-}
-
-
-// ================= Flow Arrow =================
-Widget _buildFlowArrow() {
-  return Padding(
-    padding: EdgeInsets.only(top: 45.h),
-    child: Icon(
-      Icons.arrow_forward,
-      size: 36.sp,
-      color: Colors.grey.shade400,
-    ),
-  );
-}
-
-// ================= Impact Metrics =================
-Widget _buildImpactMetrics() {
-  return Container(
-    width: double.infinity,
-    padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 80.h),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Colors.grey.shade50, Colors.white],
+          SizedBox(height: 8.h),
+          SizedBox(
+            width: 210.w,
+            child: Text(
+              description,
+              style: TextStyle(
+                fontSize: 15.sp,
+                height: 1.45,
+                color: Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
-    ),
-    child: Column(
-      children: [
-Text(
-  isBangla
-      ? "হার্ভেস্টগার্ড: আপনার ডিজিটাল সুরক্ষা"
-      : "HarvestGuard: Your Digital Shield",
-  style: TextStyle(
-    fontSize: 40.sp,
-    fontWeight: FontWeight.bold,
-    color: Colors.grey.shade900,
-    letterSpacing: 0.5,
-  ),
-),
-SizedBox(height: 16.h),
-Text(
-  isBangla
-      ? "প্রতিটি শস্য সুরক্ষার জন্য আধুনিক প্রযুক্তি"
-      : "Technology that protects every grain",
-  style: TextStyle(
-    fontSize: 18.sp,
-    color: Colors.green.shade700,
-    fontWeight: FontWeight.w500,
-  ),
-),
+    );
+  }
 
-        SizedBox(height: 60.h),
-        Wrap(
-          spacing: 30.w,
-          runSpacing: 30.h,
-          alignment: WrapAlignment.center,
-          children: [
-            _buildFeatureCard(
-              Icons.shield_outlined,
-              isBangla ? "রিয়েল-টাইম সুরক্ষা" : "Real-Time Protection",
-              isBangla
-                  ? "24/7 মনিটরিং আপনার ফসলকে নষ্ট এবং কীটপতঙ্গ থেকে নিরাপদ রাখে"
-                  : "24/7 monitoring ensures your harvest stays safe from spoilage and pests",
+  Widget _buildFlowArrow() {
+    return Padding(
+      padding: EdgeInsets.only(top: 45.h),
+      child: Icon(
+        Icons.arrow_forward,
+        size: 36.sp,
+        color: Colors.grey.shade400,
+      ),
+    );
+  }
+
+  // ================= Impact Metrics =================
+  Widget _buildImpactMetrics() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 80.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.grey.shade50, Colors.white],
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            isBangla
+                ? "হার্ভেস্টগার্ড: আপনার ডিজিটাল সুরক্ষা"
+                : "HarvestGuard: Your Digital Shield",
+            style: TextStyle(
+              fontSize: 40.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade900,
+              letterSpacing: 0.5,
             ),
-            _buildFeatureCard(
-              Icons.trending_up,
-              isBangla ? "লাভ বৃদ্ধি" : "Increase Profits",
-              isBangla
-                  ? "ক্ষতি 40% পর্যন্ত কমিয়ে প্রতিটি ফসল থেকে আয় সর্বাধিক করুন"
-                  : "Reduce losses by up to 40% and maximize your income from every harvest",
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            isBangla
+                ? "প্রতিটি শস্য সুরক্ষার জন্য আধুনিক প্রযুক্তি"
+                : "Technology that protects every grain",
+            style: TextStyle(
+              fontSize: 18.sp,
+              color: Colors.green.shade700,
+              fontWeight: FontWeight.w500,
             ),
-            _buildFeatureCard(
-              Icons.phone_android,
-              isBangla ? "ব্যবহার সহজ" : "Simple to Use",
-              isBangla
-                  ? "বড় বোতাম এবং ভয়েস সাপোর্ট সহ মোবাইল-প্রথম ডিজাইন"
-                  : "Mobile-first design with large buttons and voice support for everyone",
-            ),
-            _buildFeatureCard(
-              Icons.eco,
-              isBangla ? "টেকসই ভবিষ্যৎ" : "Sustainable Future",
-              isBangla
-                  ? "খাদ্য বর্জ্য কমিয়ে এবং পরিবেশ রক্ষা করে SDG 12.3 অর্জনে সহায়তা করুন"
-                  : "Help achieve SDG 12.3 by reducing food waste and protecting the environment",
+          ),
+          SizedBox(height: 60.h),
+          Wrap(
+            spacing: 30.w,
+            runSpacing: 30.h,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildFeatureCard(
+                Icons.shield_outlined,
+                isBangla ? "রিয়েল-টাইম সুরক্ষা" : "Real-Time Protection",
+                isBangla
+                    ? "24/7 মনিটরিং আপনার ফসলকে নষ্ট এবং কীটপতঙ্গ থেকে নিরাপদ রাখে"
+                    : "24/7 monitoring ensures your harvest stays safe from spoilage and pests",
+              ),
+              _buildFeatureCard(
+                Icons.trending_up,
+                isBangla ? "লাভ বৃদ্ধি" : "Increase Profits",
+                isBangla
+                    ? "ক্ষতি 40% পর্যন্ত কমিয়ে প্রতিটি ফসল থেকে আয় সর্বাধিক করুন"
+                    : "Reduce losses by up to 40% and maximize your income from every harvest",
+              ),
+              _buildFeatureCard(
+                Icons.phone_android,
+                isBangla ? "ব্যবহার সহজ" : "Simple to Use",
+                isBangla
+                    ? "বড় বোতাম এবং ভয়েস সাপোর্ট সহ মোবাইল-প্রথম ডিজাইন"
+                    : "Mobile-first design with large buttons and voice support for everyone",
+              ),
+              _buildFeatureCard(
+                Icons.eco,
+                isBangla ? "টেকসই ভবিষ্যৎ" : "Sustainable Future",
+                isBangla
+                    ? "খাদ্য বর্জ্য কমিয়ে এবং পরিবেশ রক্ষা করে SDG 12.3 অর্জনে সহায়তা করুন"
+                    : "Help achieve SDG 12.3 by reducing food waste and protecting the environment",
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard(IconData icon, String title, String description) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: 460.w,
+        minWidth: 320.w,
+      ),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 26.w, vertical: 24.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
             ),
           ],
         ),
-      ],
-    ),
-  );
-}
-
-
-// ================= Feature Card (WEB SAFE + RESPONSIVE) =================
-Widget _buildFeatureCard(IconData icon, String title, String description) {
-  return ConstrainedBox(
-    constraints: BoxConstraints(
-      maxWidth: 460.w, // ✅ prevents web overflow
-      minWidth: 320.w,
-    ),
-    child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 26.w, vertical: 24.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Colors.grey.shade200,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Green Icon Box
-          Container(
-            width: 52.w,   // ✅ web balanced
-            height: 52.w,  // ✅ web balanced
-            decoration: BoxDecoration(
-              color: Colors.green.shade600,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.green.withOpacity(0.35),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Icon(icon, size: 28.sp, color: Colors.white), // ✅ balanced
-          ),
-
-          SizedBox(width: 20.w),
-
-          // Text Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 20.sp, // ✅ slightly smaller for web
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade900,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 52.w,
+              height: 52.w,
+              decoration: BoxDecoration(
+                color: Colors.green.shade600,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withOpacity(0.35),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
                   ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 14.sp, // ✅ web safe size
-                    height: 1.5,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ],
+                ],
+              ),
+              child: Icon(icon, size: 28.sp, color: Colors.white),
             ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 800.ms).scale(delay: 200.ms),
-  );
-}
-
-// ================= Metric Card =================
-Widget _buildMetricCard(String value, String label) {
-  return Container(
-    width: 200.w,
-    padding: EdgeInsets.all(30.w),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 15,
-          offset: const Offset(0, 5),
-        )
-      ],
-    ),
-    child: Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 42.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.green.shade700,
-          ),
+            SizedBox(width: 20.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade900,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      height: 1.5,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 10.h),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey.shade700,
-          ),
-        ),
-      ],
-    ),
-  ).animate().fadeIn(duration: 800.ms).scale(delay: 200.ms);
-}
-
+      ).animate().fadeIn(duration: 800.ms).scale(delay: 200.ms),
+    );
+  }
 
   // ================= Call to Action =================
   Widget _buildCallToAction() {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 80.h),
-      decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.green.shade600, Colors.green.shade800])),
+      decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [Colors.green.shade600, Colors.green.shade800])),
       child: Column(
         children: [
           Text(isBangla ? "আজই শুরু করুন" : "Start Protecting Today",
