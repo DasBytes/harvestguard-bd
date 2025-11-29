@@ -12,6 +12,7 @@ import 'package:harvestguard_bd/screens/profile_screen.dart';
 import 'package:harvestguard_bd/screens/batch_screen.dart';
 import 'package:harvestguard_bd/screens/scanner_screen.dart';
 import 'package:harvestguard_bd/screens/dashboard_screen.dart';
+import 'package:harvestguard_bd/screens/faq.dart';
 
 
 // ==================== Home Screen ====================
@@ -203,6 +204,7 @@ _buildDrawerItem(Icons.bug_report, isBangla ? "পোকা শনাক্ত�
                 MaterialPageRoute(builder: (_) => PestIdentifierPage()), // ✅ NEW
               );
             }),
+     
             _buildDrawerItem(Icons.logout, isBangla ? "লগআউট" : "Logout", () {
               AuthService().signOut().then((_) {
                 setState(() {
