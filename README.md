@@ -76,7 +76,57 @@ Powered by PlantNet API:
 * Identify healthy or damaged condition
 
 ---
+### 🗺 Community Risk Awareness Map
 
+* Interactive risk map showing the spoilage situation of nearby farms  
+* Auto-centered on the farmer’s selected district/city  
+* 10–15 anonymous nearby farm markers generated with mock data  
+* Color-coded risk levels for easy understanding:
+  - 🟢 Low Risk  
+  - 🟡 Medium Risk  
+  - 🔴 High Risk  
+* Farmer’s own location displayed with a distinct blue pin  
+* Tap any marker to view Bangla pop-ups with crop type, risk level, and last update  
+* Smooth, touch-friendly map movement with pan and zoom support  
+
+---
+
+### 📢 Smart Decision & Alert System
+
+* Generates highly specific Bangla advice by combining:
+  - Crop type  
+  - Weather forecast  
+  - Current storage risk  
+* Produces detailed instructions instead of vague alerts  
+  *Example:*  
+  _“আগামীকাল বৃষ্টি হবে এবং আর্দ্রতা বেশি — এখনই গুদামের ফ্যান চালু করুন।”_  
+* Triggers simulated SMS-style alerts in the console when the crop enters a **Critical Risk** condition  
+
+---
+
+### 🐛 AI-Powered Pest Identification & Treatment Plan
+
+* Farmers can upload images of pests or crop damage  
+* System uses Gemini Visual AI + Search Grounding for accurate identification  
+* Detects the type of pest/disease and determines risk level (Low/Medium/High)  
+* Generates a grounded, hyper-local treatment plan fully in Bangla  
+  *Example:*  
+  _“পাতায় দাগ → মাঝারি ঝুঁকি → তামা-ভিত্তিক স্প্রে ব্যবহার করুন।”_  
+* Clean preview of the uploaded image before submitting for analysis  
+
+---
+
+### 🎤 Bangla Voice Assistant (Touchless Interaction)
+
+* Supports natural spoken Bangla commands using Web Speech API (bn-BD)  
+* Farmers can ask common questions such as:
+  * “আজকের আবহাওয়া কী?”  
+  * “ধানের ঝুঁকি কত?”  
+  * “গুদামে কী করব?”  
+  * “কবে কাটব?”  
+* App replies instantly in spoken Bangla  
+* Includes text-chat fallback with Bangla keyboard for devices where mic input is limited
+---
 ## 🛠 Tech Stack
 
 ### Frontend
