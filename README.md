@@ -13,10 +13,7 @@
 - Bangla and English language toggle
 - Narrative flow: _Problem → Risk → Solution_
 
-**Screenshot:**  
-![Landing Page](screenshots/landing_page.png)
 
----
 
 ### 🌱 2. Farmer & Crop Management
 - Firebase Authentication (Email & Password)
@@ -32,8 +29,7 @@
 - Offline support with local cache
 - Export batch data as CSV/JSON
 
-**Screenshot:**  
-![Farmer Dashboard](screenshots/farmer_dashboard.png)
+
 
 ---
 
@@ -44,8 +40,7 @@ Powered by **OpenWeather API**:
 - Bangla advisories, e.g.:  
 > “আগামী ৩ দিন বৃষ্টির সম্ভাবনা বেশি — ধান ঢেকে রাখুন”
 
-**Screenshot:**  
-![Weather Forecast](screenshots/weather_forecast.png)
+
 
 ---
 
@@ -54,8 +49,7 @@ Powered by **OpenWeather API**:
 - Outputs ETCL (hours until spoilage risk)
 - Bangla warnings for mold, moisture, and drying issues
 
-**Screenshot:**  
-![ETCL Prediction](screenshots/etcl_prediction.png)
+
 
 ---
 
@@ -65,8 +59,7 @@ Using **PlantNet.org API**:
 - Detect plant species
 - Identify health condition (healthy/rotten-like)
 
-**Screenshot:**  
-![Crop Scanner](screenshots/crop_scanner.png)
+
 
 ---
 
