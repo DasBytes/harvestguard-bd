@@ -30,127 +30,170 @@ class _DashboardScreenState extends State<DashboardScreen> {
     fetchBatchData();
   }
 
-  Future<void> fetchBatchData() async {
-    try {
+Future<void> fetchBatchData() async {
+  try {
+    setState(() {
+      _apiStatus = "ব্যাচের তথ্য লোড করা হচ্ছে...";
+      _isLoading = true;
+    });
+
+    if (user == null) {
       setState(() {
-        _apiStatus = "ব্যাচের তথ্য লোড করা হচ্ছে...";
-        _isLoading = true;
-      });
-
-      if (user == null) {
-        setState(() {
-          _apiStatus = "ব্যবহারকারী লগইন করেননি";
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final snapshot = await FirebaseFirestore.instance
-          .collection('create_batches')
-          .where('uid', isEqualTo: user!.uid)
-          .orderBy('timestamp', descending: true)
-          .limit(1)
-          .get();
-
-      if (snapshot.docs.isEmpty) {
-        setState(() {
-          _apiStatus = "কোন ব্যাচ পাওয়া যায়নি";
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final data = snapshot.docs.first.data();
-
-      batchData = {
-        "crop": data['cropNameBn'] ?? '',
-        "weight": data['quantityKg'] ?? 0,
-        "date": data['harvestDate'] != null
-            ? (data['harvestDate'] as Timestamp)
-                .toDate()
-                .toString()
-                .substring(0, 10)
-            : '',
-        "location": data['location'] ?? '',
-        "storage": data['storageType'] ?? '',
-      };
-
-      setState(() {
-        _apiStatus = "ব্যাচের তথ্য লোড হয়েছে";
-      });
-
-      await fetchWeather();
-    } catch (e) {
-      setState(() {
-        _apiStatus = "ব্যাচ ডেটা ত্রুটি: $e";
+        _apiStatus = "ব্যবহারকারী লগইন করেননি";
         _isLoading = false;
       });
+      return;
     }
-  }
 
-  Future<void> fetchWeather() async {
-    try {
-      double lat = 23.8103;
-      double lon = 90.4125;
+    final snapshot = await FirebaseFirestore.instance
+        .collection('create_batches')
+        .where('uid', isEqualTo: user!.uid)
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .get();
 
+    if (snapshot.docs.isEmpty) {
       setState(() {
-        _apiStatus = "আবহাওয়া API কল করা হচ্ছে...";
-      });
-
-      final url =
-          "https://api.openweathermap.org/data/2.5/forecast?lat=$lat&lon=$lon&appid=$weatherApiKey&units=metric";
-
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode != 200) {
-        setState(() {
-          _apiStatus = "আবহাওয়া API ত্রুটি";
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final data = jsonDecode(response.body);
-
-      setState(() {
-        weather = data["list"][0];
-        forecast = data["list"].take(5).toList();
-        _apiStatus = "ডেটা লোড হয়েছে";
+        _apiStatus = "কোন ব্যাচ পাওয়া যায়নি";
         _isLoading = false;
       });
+      return;
+    }
 
-      generateAdvisoryAndPrediction();
-    } catch (e) {
+    final data = snapshot.docs.first.data();
+
+    batchData = {
+      "crop": data['cropNameBn'] ?? '',
+      "weight": data['quantityKg'] ?? 0,
+      "date": data['harvestDate'] != null
+          ? (data['harvestDate'] as Timestamp).toDate().toString().substring(0, 10)
+          : '',
+      "location": data['location'] ?? '',
+      "storage": data['storageType'] ?? '',
+    };
+
+    setState(() {
+      _apiStatus = "ব্যাচের তথ্য লোড হয়েছে";
+    });
+
+    await fetchWeather();
+  } catch (e) {
+    setState(() {
+      _apiStatus = "ব্যাচ ডেটা ত্রুটি: $e";
+      _isLoading = false;
+    });
+  }
+}
+
+Future<({String? city, double? lat, double? lon})> geoLocation(String city) async {
+  try {
+    city = city.trim(); // Remove extra spaces
+    final url = Uri.parse(
+        "https://geocoding-api.open-meteo.com/v1/search?name=${Uri.encodeComponent(city)}&count=1&format=json");
+    final res = await http.get(url);
+
+    if (res.statusCode != 200) {
+      throw Exception("Geocoding failed ${res.statusCode}");
+    }
+
+    final deData = jsonDecode(res.body) as Map<String, dynamic>;
+    final result = (deData['results'] as List?) ?? [];
+    if (result.isEmpty) {
+      throw Exception("City Not Found");
+    }
+
+    final m = result.first as Map<String, dynamic>;
+    final lat = (m['latitude'] as num).toDouble();
+    final lon = (m['longitude'] as num).toDouble();
+    final name = "${m['name']}, ${m['country']}";
+    print({"lat: $lat, lon: $lon, name: $name"});
+
+    return (city: name, lat: lat, lon: lon);
+  } catch (e) {
+    // Fallback to Dhaka if city not found
+    print("GeoLocation error: $e. Using default Dhaka coordinates.");
+    return (city: "Dhaka, Bangladesh", lat: 23.8103, lon: 90.4125);
+  }
+}
+
+Future<void> fetchWeather() async {
+  try {
+    if (batchData == null || batchData!['location'] == null || batchData!['location'] == '') {
       setState(() {
-        _apiStatus = "নেটওয়ার্ক ত্রুটি: $e";
+        _apiStatus = "ফসলের অবস্থান পাওয়া যায়নি।";
         _isLoading = false;
       });
-    }
-  }
-
-  void generateAdvisoryAndPrediction() {
-    if (forecast.isEmpty || batchData == null) return;
-
-    String crop = batchData!["crop"];
-    String storage = batchData!["storage"];
-
-    double avgTemp = 0;
-    double avgHumidity = 0;
-    double maxRain = 0;
-
-    for (var day in forecast.take(3)) {
-      avgTemp += (day["main"]["temp"] ?? 0).toDouble();
-      avgHumidity += (day["main"]["humidity"] ?? 0).toDouble();
-      double rain = ((day["pop"] ?? 0) * 100);
-      if (rain > maxRain) maxRain = rain;
+      return;
     }
 
-    avgTemp /= 3;
-    avgHumidity /= 3;
+    String city = batchData!['location'];
 
-    generateAdvisory(crop, storage, avgTemp, avgHumidity, maxRain);
-    generateETCLPrediction(avgTemp, avgHumidity, maxRain);
+    setState(() {
+      _apiStatus = "আবহাওয়া API কল করা হচ্ছে...";
+      _isLoading = true;
+    });
+
+    // Step 1: Get coordinates for city
+    final loc = await geoLocation(city);
+    double lat = loc.lat!;
+    double lon = loc.lon!;
+
+    // Step 2: Fetch forecast using OpenWeather
+    final url =
+        "https://api.openweathermap.org/data/2.5/forecast?lat=$lat&lon=$lon&appid=$weatherApiKey&units=metric";
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode != 200) {
+      setState(() {
+        _apiStatus = "আবহাওয়া API ত্রুটি";
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final data = jsonDecode(response.body);
+
+    setState(() {
+      weather = data["list"][0];
+      forecast = data["list"].take(5).toList();
+      _apiStatus = "ডেটা লোড হয়েছে";
+      _isLoading = false;
+    });
+
+    generateAdvisoryAndPrediction();
+  } catch (e) {
+    setState(() {
+      _apiStatus = "নেটওয়ার্ক ত্রুটি: $e";
+      _isLoading = false;
+    });
   }
+}
+
+
+void generateAdvisoryAndPrediction() {
+  if (forecast.isEmpty || batchData == null) return;
+
+  String crop = batchData!["crop"];
+  String storage = batchData!["storage"];
+
+  double avgTemp = 0;
+  double avgHumidity = 0;
+  double maxRain = 0;
+
+  for (var day in forecast.take(3)) {
+    avgTemp += (day["main"]["temp"] ?? 0).toDouble();
+    avgHumidity += (day["main"]["humidity"] ?? 0).toDouble();
+    double rain = ((day["pop"] ?? 0) * 100);
+    if (rain > maxRain) maxRain = rain;
+  }
+
+  avgTemp /= 3;
+  avgHumidity /= 3;
+
+  generateAdvisory(crop, storage, avgTemp, avgHumidity, maxRain);
+  generateETCLPrediction(avgTemp, avgHumidity, maxRain);
+}
+
 
   void generateAdvisory(
       String crop, String storage, double temp, double humidity, double rain) {

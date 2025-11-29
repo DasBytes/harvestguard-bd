@@ -4,7 +4,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:harvestguard_bd/screens/pest_identifier_screen.dart';
-import 'package:harvestguard_bd/screens/voice_assistant_screen.dart';
+import 'package:harvestguard_bd/screens/voice_chat.dart';
 import '../services/auth_service.dart';
 import 'package:harvestguard_bd/screens/login_screen.dart';
 import 'package:harvestguard_bd/screens/registration_screen.dart';
@@ -189,11 +189,12 @@ Widget build(BuildContext context) {
                 
               );
             }),
-            _buildDrawerItem(Icons.qr_code_scanner, isBangla ? "স্ক্যানার" : "Scanner", () {
+            _buildDrawerItem(Icons.qr_code_scanner, isBangla ? "স্ক্যানার" : "Scanner", ()
+             {
               Navigator.push(context, MaterialPageRoute(builder: (_) => ScannerScreen()));
             }),
             _buildDrawerItem(Icons.record_voice_over, isBangla ? "ভয়েস সহায়িকা" : "Voice Assistant", () {
-  Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceAssistantScreen(isBangla: isBangla)));
+  Navigator.push(context, MaterialPageRoute(builder: (_) => SpeechAgricultureAssistant()));
 }),
 
 _buildDrawerItem(Icons.bug_report, isBangla ? "পোকা শনাক্তকরণ" : "Pest Identification", () { // ✅ NEW
