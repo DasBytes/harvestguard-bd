@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:harvestguard_bd/screens/map_screen.dart'; // Import your MapScreen here
 
 class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -215,8 +218,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Colors.green;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading || batchData == null) {
@@ -313,6 +314,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ================= Error Widget =================
             if (_apiStatus.contains("ত্রুটি"))
               Container(
                 width: double.infinity,
@@ -351,7 +353,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
-            // ব্যাচের তথ্য কার্ড
+            // ================= Batch Info Card =================
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -411,7 +413,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             SizedBox(height: 28),
 
-            // Weather Forecast Section
+            // ================= Weather Forecast Section =================
             Row(
               children: [
                 Icon(Icons.wb_cloudy, color: Colors.blue.shade700, size: 28),
@@ -528,7 +530,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             SizedBox(height: 28),
 
-            // Advisory Card
+            // ================= Advisory Card =================
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -591,24 +593,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: 28),
 
-            // Risk Forecast Card
+            // ================= Risk Summary Card =================
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    _getRiskColor().withOpacity(0.15),
-                    _getRiskColor().withOpacity(0.05),
-                  ],
+                  colors: [Colors.red.shade50, Colors.pink.shade50],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _getRiskColor(), width: 3),
+                border: Border.all(color: Colors.red.shade300, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: _getRiskColor().withOpacity(0.3),
+                    color: Colors.red.shade200,
                     blurRadius: 8,
                     offset: Offset(0, 4),
                   ),
@@ -628,20 +627,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            Icons.warning_amber_rounded,
+                            Icons.warning,
                             color: Colors.white,
                             size: 26,
                           ),
                         ),
                         SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            "ঝুঁকি পূর্বাভাস",
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: _getRiskColor(),
-                            ),
+                        Text(
+                          "ঝুঁকি সংক্ষিপ্তসার",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade900,
                           ),
                         ),
                       ],
@@ -653,46 +650,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         fontSize: 17,
                         height: 1.5,
                         color: Colors.grey.shade800,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: (168 - etclHours) / 168,
-                        backgroundColor: Colors.grey.shade300,
-                        valueColor: AlwaysStoppedAnimation<Color>(_getRiskColor()),
-                        minHeight: 12,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "ঝুঁকি কম",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade700,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          "ঝুঁকি বেশি",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade700,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 16),
+
+            SizedBox(height: 28),
+
+            // ================= Map Screen Card Button =================
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  MapScreen()),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade50, Colors.blue.shade100],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.blue.shade300, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.shade200,
+                      blurRadius: 6,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.map, size: 28, color: Colors.blue.shade900),
+                      SizedBox(width: 12),
+                      Text(
+                        "মানচিত্র দেখুন",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 40),
           ],
         ),
       ),

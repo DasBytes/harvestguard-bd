@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:harvestguard_bd/screens/pest_identifier_screen.dart';
+import 'package:harvestguard_bd/screens/voice_assistant_screen.dart';
 import '../services/auth_service.dart';
 import 'package:harvestguard_bd/screens/login_screen.dart';
 import 'package:harvestguard_bd/screens/registration_screen.dart';
@@ -10,6 +12,7 @@ import 'package:harvestguard_bd/screens/profile_screen.dart';
 import 'package:harvestguard_bd/screens/batch_screen.dart';
 import 'package:harvestguard_bd/screens/scanner_screen.dart';
 import 'package:harvestguard_bd/screens/dashboard_screen.dart';
+
 
 // ==================== Home Screen ====================
 class HomeScreen extends StatefulWidget {
@@ -183,10 +186,21 @@ Widget build(BuildContext context) {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => CropBatchRegistrationScreen(isBangla: isBangla)),
+                
               );
             }),
             _buildDrawerItem(Icons.qr_code_scanner, isBangla ? "স্ক্যানার" : "Scanner", () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => ScannerScreen()));
+            }),
+            _buildDrawerItem(Icons.record_voice_over, isBangla ? "ভয়েস সহায়িকা" : "Voice Assistant", () {
+  Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceAssistantScreen(isBangla: isBangla)));
+}),
+
+_buildDrawerItem(Icons.bug_report, isBangla ? "পোকা শনাক্তকরণ" : "Pest Identification", () { // ✅ NEW
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => PestIdentifierPage()), // ✅ NEW
+              );
             }),
             _buildDrawerItem(Icons.logout, isBangla ? "লগআউট" : "Logout", () {
               AuthService().signOut().then((_) {
