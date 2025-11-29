@@ -1,126 +1,222 @@
 # 🌾 HarvestGuard – Smart Crop Protection & Weather-Aware Farming Assistant
 
-**HarvestGuard** is a mobile app built using **Flutter**, **Firebase**, **OpenWeather API**, and **PlantNet API**, designed to help Bangladeshi farmers reduce food loss. The app provides hyper-local weather forecasts, crop batch monitoring, health scanning, and offline-safe data management to protect harvested crops and maximize profits.
-**Live Deployed App:** https://harvestguard-bd.netlify.app/
+**HarvestGuard** is a smart agriculture assistant built for Bangladeshi farmers to reduce post-harvest food loss and maximize profit using real-time weather data, crop batch tracking, and AI-powered plant health detection.
+
+🔗 **Live App:** [https://harvestguard-bd.netlify.app/](https://harvestguard-bd.netlify.app/)
 
 ---
- 
+
+## 📖 Project Overview
+
+HarvestGuard combines modern mobile technology with local agricultural needs. Farmers can track their stored crops, get hyper‑local weather alerts, predict spoilage risks, and scan crop health — all in Bangla & English.
+
+**Goal:** Reduce food loss by up to **40%** and improve farmer income through smart, data-driven decisions.
+
+---
+
 ## 🚀 Core Features
 
-### 🔥 1. Storytelling Landing Page
-- Engaging onboarding screens explaining Bangladesh’s food loss crisis
-- Smooth animations and mobile-first responsive design
-- Bangla and English language toggle
-- Narrative flow: _Problem → Risk → Solution_
+### 🔥 Storytelling Landing Page
 
-
-
-### 🌱 2. Farmer & Crop Management
-- Firebase Authentication (Email & Password)
-- Farmer profile with language preference
-- Crop batch creation with:
-  - Crop type  
-  - Estimated weight  
-  - Harvest date  
-  - Storage district/division  
-  - Storage type (silo/bag/open)
-- Batch list and detailed batch view
-- Gamification badges for engagement
-- Offline support with local cache
-- Export batch data as CSV/JSON
-
-
+* Interactive problem-solution onboarding
+* Smooth animations and mobile-first UI
+* Bangla 🇧🇩 & English 🇬🇧 language toggle
+* Narrative Flow: **Problem → Risk → Solution**
 
 ---
 
-### ☁️ 3. Hyper-Local Weather Forecast
-Powered by **OpenWeather API**:
-- 5-day forecast with temperature, humidity, and rainfall probability
-- Auto-selected weather based on Upazila
-- Bangla advisories, e.g.:  
+### 🌱 Farmer & Crop Management
+
+* Secure email & password authentication
+* Farmer profile with language preference
+* Crop batch creation with:
+
+  * Crop type
+  * Estimated weight
+  * Harvest date
+  * Storage district/division
+  * Storage type (Silo / Bag / Open)
+* Batch list & detailed batch view
+* Gamification badges for motivation
+
+---
+
+### ☁️ Hyper‑Local Weather Forecast
+
+Powered by OpenWeather API:
+
+* 5‑day weather forecast
+* Temperature, Humidity & Rainfall probability
+* Auto-detected weather by **Upazila**
+* Bangla advisories like:
+
 > “আগামী ৩ দিন বৃষ্টির সম্ভাবনা বেশি — ধান ঢেকে রাখুন”
 
+---
 
+### 🔮 Estimated Time to Critical Loss (ETCL)
+
+* Custom spoilage prediction engine
+* Uses temperature, humidity & rainfall
+* Shows remaining **safe hours** before crop damage
+* Bangla alerts for:
+
+  * Mold risk
+  * Moisture damage
+  * Drying failure
 
 ---
 
-### 🔮 4. Estimated Time to Critical Loss (ETCL)
-- Custom prediction engine using temperature, humidity, and rainfall
-- Outputs ETCL (hours until spoilage risk)
-- Bangla warnings for mold, moisture, and drying issues
+### 📷 Basic Crop Health Scanner
 
+Powered by PlantNet API:
 
-
----
-
-### 📷 5. Basic Crop Health Scanner
-Using **PlantNet.org API**:
-- Capture or upload plant photo
-- Detect plant species
-- Identify health condition (healthy/rotten-like)
-
-
+* Capture or upload crop photo
+* Detect plant species
+* Identify healthy or damaged condition
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Frontend
-- Flutter 3.x  
-- Dart  
-- Flutter ScreenUtil  
+
+* Flutter 3.x
+* Dart
+* Flutter ScreenUtil
 
 ### Backend
-- Firebase Authentication  
-- Firebase Firestore  
-- Firebase Storage  
+
+* Firebase Authentication
+* Cloud Firestore
+* Firebase Storage
 
 ### APIs
-- **OpenWeather API** — for hyper-local weather  
-- **PlantNet API** — plant identification  
+
+* OpenWeather API – Weather forecast
+* PlantNet API – Plant identification
 
 ### Tools
-- Git & GitHub  
-- VS Code / Android Studio  
+
+* Git
+* GitHub
+* Netlify (Web Deployment)
+
+---
+
+## 👥 Team Members
+
+| Name                           | Role                                         |
+| ------------------------------ | -------------------------------------------- |
+| Sadrib Shaiyan Islam           | Flutter Developer / UI-UX                    |
+| Mohammad Saad Salmee Chowdhury | Flutter Developer / UI-UX                    |
+| Pranta Das                     | Backend, Firebase, API Integration & Testing |
 
 ---
 
 ## ⚡ Installation & Setup
 
-1. **Clone the repository**
+### 1️⃣ Clone the Repository
+
 ```bash
 git clone https://github.com/DasBytes/harvestguard-bd.git
 cd harvestguard-bd
+```
 
-Install dependencies
+---
 
+### 2️⃣ Install Dependencies
+
+```bash
 flutter pub get
-Firebase Setup
+```
 
-Create a Firebase project
+---
 
-Enable Firestore and Authentication
+### 3️⃣ Firebase Setup
 
-Download google-services.json (Android) or GoogleService-Info.plist (iOS)
+1. Create a new Firebase project
+2. Enable:
 
-Place the file in the respective platform folder
+   * Authentication (Email/Password)
+   * Firestore Database
+   * Firebase Storage
+3. Download the configuration files:
 
-Run the app
+   * `google-services.json` for Android
+   * `GoogleService-Info.plist` for iOS
+4. Place them in the respective platform folders
 
+---
+
+### 4️⃣ Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+OPENWEATHER_API_KEY=your_api_key_here
+PLANTNET_API_KEY=your_api_key_here
+```
+
+---
+
+### 5️⃣ Run the App
+
+```bash
 flutter run
+```
+
+For Web:
+
+```bash
+flutter build web
+```
+
+---
+
+## 🌐 Deployment
+
+### Netlify (Web)
+
+```bash
+flutter build web
+netlify deploy --prod --dir=build/web
+```
+
+---
+
+## 📱 Screenshots (Add Your Screens Here)
+
+```
+/screenshots/home.png
+/screenshots/dashboard.png
+/screenshots/weather.png
+/screenshots/scanner.png
+```
+
+---
+
+## 🌟 Special Notes
+
+* Supports **Bangla & English**
+* Works in **offline-safe mode**
+* Real-time weather-based crop safety alerts
+* Designed for rural farmers with low-bandwidth support
 
 
-👥 Team Members
-Name	                       
-Sadrib Shaiyan Islam and Mohammad Saad Salmee : Flutter Developer / UI/UX
-Pranta Das  :	Backend & Firebase Setup and API Integration & Testing
-	
 
-🌟 Notes
+## 📄 License
 
-Supports Bangla and English languages
+This project is for academic and demonstration purposes.
 
-Offline-safe mode preserves data without internet
+---
 
-Designed to reduce food loss by up to 40% and maximize farmer profits
+## 💬 Contact
 
+For collaboration or support:
+
+* GitHub: [https://github.com/DasBytes](https://github.com/DasBytes)
+
+---
+
+### 🌾 “Technology that protects every grain.”
