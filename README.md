@@ -93,31 +93,6 @@ Powered by PlantNet API:
 
 ---
 
-### 📢 Smart Decision & Alert System
-
-* Generates specific Bangla advice combining:
-
-  * Crop type
-  * Weather forecast
-  * Current storage risk
-* Produces actionable instructions:
-
-> *“আগামীকাল বৃষ্টি হবে এবং আর্দ্রতা বেশি — এখনই গুদামের ফ্যান চালু করুন।”*
-
-* Simulated SMS-style alerts in the console for **Critical Risk** crops
-
----
-
-### 🐛 AI-Powered Pest Identification & Treatment Plan
-
-* Upload pest or damage images
-* Uses Gemini Visual AI + Search Grounding
-* Detects pest/disease type & risk (Low/Medium/High)
-* Generates hyper-local Bangla treatment plan
-
-> *“পাতায় দাগ → মাঝারি ঝুঁকি → তামা-ভিত্তিক স্প্রে ব্যবহার করুন।”*
-
-* Clean preview of uploaded images
 
 ---
 
