@@ -221,27 +221,6 @@ flutter build web
 netlify deploy --prod --dir=build/web
 ```
 
------
-
-## 📱 Screenshots
-
-\<div align="center"\>
-\<h3\>Landing & Onboarding\</h3\>
-\<img src="lib/assets/screenshot/landing%20apge.png" width="200" alt="Landing Page" /\>
-\<img src="lib/assets/screenshot/landing%20page%202.png" width="200" alt="Onboarding 2" /\>
-\<img src="lib/assets/screenshot/landing%20page%203.png" width="200" alt="Onboarding 3" /\>
-
-\<h3\>Dashboard & Tracking\</h3\>
-\<img src="lib/assets/screenshot/dashboard%20.png" width="200" alt="Dashboard" /\>
-\<img src="lib/assets/screenshot/batch%20info.png" width="200" alt="Batch Info" /\>
-\<img src="lib/assets/screenshot/data.png" width="200" alt="Data Analytics" /\>
-
-\<h3\>Tools & Profile\</h3\>
-\<img src="lib/assets/screenshot/scanner%20page.png" width="200" alt="Scanner" /\>
-\<img src="lib/assets/screenshot/profile%20page.png" width="200" alt="Profile" /\>
-\</div\>
-
------
 
 ## 🌟 Special Notes
 
