@@ -76,91 +76,84 @@ Powered by PlantNet API:
 * Identify healthy or damaged condition
 
 ---
+
 ### 🗺 Community Risk Awareness Map
 
-* Interactive risk map showing the spoilage situation of nearby farms  
-* Auto-centered on the farmer’s selected district/city  
-* 10–15 anonymous nearby farm markers generated with mock data  
-* Color-coded risk levels for easy understanding:
-  - 🟢 Low Risk  
-  - 🟡 Medium Risk  
-  - 🔴 High Risk  
-* Farmer’s own location displayed with a distinct blue pin  
-* Tap any marker to view Bangla pop-ups with crop type, risk level, and last update  
-* Smooth, touch-friendly map movement with pan and zoom support  
+* Interactive risk map showing nearby farm spoilage
+* Auto-centered on the farmer’s selected district/city
+* 10–15 anonymous nearby farm markers (mock data)
+* Color-coded risk levels:
+
+  * 🟢 Low Risk
+  * 🟡 Medium Risk
+  * 🔴 High Risk
+* Farmer’s own location with blue pin
+* Tap any marker for Bangla pop-ups with crop type, risk, and last update
+* Smooth pan & zoom support
 
 ---
 
 ### 📢 Smart Decision & Alert System
 
-* Generates highly specific Bangla advice by combining:
-  - Crop type  
-  - Weather forecast  
-  - Current storage risk  
-* Produces detailed instructions instead of vague alerts  
-  *Example:*  
-  _“আগামীকাল বৃষ্টি হবে এবং আর্দ্রতা বেশি — এখনই গুদামের ফ্যান চালু করুন।”_  
-* Triggers simulated SMS-style alerts in the console when the crop enters a **Critical Risk** condition  
+* Generates specific Bangla advice combining:
+
+  * Crop type
+  * Weather forecast
+  * Current storage risk
+* Produces actionable instructions:
+
+> *“আগামীকাল বৃষ্টি হবে এবং আর্দ্রতা বেশি — এখনই গুদামের ফ্যান চালু করুন।”*
+
+* Simulated SMS-style alerts in the console for **Critical Risk** crops
 
 ---
 
 ### 🐛 AI-Powered Pest Identification & Treatment Plan
 
-* Farmers can upload images of pests or crop damage  
-* System uses Gemini Visual AI + Search Grounding for accurate identification  
-* Detects the type of pest/disease and determines risk level (Low/Medium/High)  
-* Generates a grounded, hyper-local treatment plan fully in Bangla  
-  *Example:*  
-  _“পাতায় দাগ → মাঝারি ঝুঁকি → তামা-ভিত্তিক স্প্রে ব্যবহার করুন।”_  
-* Clean preview of the uploaded image before submitting for analysis  
+* Upload pest or damage images
+* Uses Gemini Visual AI + Search Grounding
+* Detects pest/disease type & risk (Low/Medium/High)
+* Generates hyper-local Bangla treatment plan
+
+> *“পাতায় দাগ → মাঝারি ঝুঁকি → তামা-ভিত্তিক স্প্রে ব্যবহার করুন।”*
+
+* Clean preview of uploaded images
 
 ---
 
 ### 🎤 Bangla Voice Assistant (Touchless Interaction)
 
-* Supports natural spoken Bangla commands using Web Speech API (bn-BD)  
-* Farmers can ask common questions such as:
-  * “আজকের আবহাওয়া কী?”  
-  * “ধানের ঝুঁকি কত?”  
-  * “গুদামে কী করব?”  
-  * “কবে কাটব?”  
-* App replies instantly in spoken Bangla  
-* Includes text-chat fallback with Bangla keyboard for devices where mic input is limited
+* Natural spoken Bangla commands via Web Speech API (bn-BD)
+* Common queries:
+
+  * “আজকের আবহাওয়া কী?”
+  * “ধানের ঝুঁকি কত?”
+  * “গুদামে কী করব?”
+  * “কবে কাটব?”
+* Instant spoken replies + text-chat fallback
+
 ---
+
 ## 🛠 Tech Stack
 
-### Frontend
-
-* Flutter 3.x
-* Dart
-* Flutter ScreenUtil
-
-### Backend
-
-* Firebase Authentication
-* Cloud Firestore
-* Firebase Storage
-
-### APIs
-
-* OpenWeather API – Weather forecast
-* PlantNet API – Plant identification
-
-### Tools
-
-* Git
-* GitHub
-* Netlify (Web Deployment)
+**Frontend:** Flutter 3.x, Dart, Flutter ScreenUtil
+**Backend:** Firebase Authentication, Cloud Firestore, Firebase Storage
+**APIs:** OpenWeather API, PlantNet API
+**Tools:** Git, GitHub, Netlify
 
 ---
 
 ## 👥 Team Members
+
+<div align="center">
 
 | Name                           | Role                                         |
 | ------------------------------ | -------------------------------------------- |
 | Sadrib Shaiyan Islam           | Flutter Developer / UI-UX                    |
 | Mohammad Saad Salmee Chowdhury | Flutter Developer / UI-UX                    |
 | Pranta Das                     | Backend, Firebase, API Integration & Testing |
+
+</div>
 
 ---
 
@@ -169,11 +162,9 @@ Powered by PlantNet API:
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/DasBytes/harvestguard-bd.git
+git clone [https://github.com/DasBytes/harvestguard-bd.git](https://github.com/DasBytes/harvestguard-bd.git)
 cd harvestguard-bd
-```
-
----
+````
 
 ### 2️⃣ Install Dependencies
 
@@ -181,34 +172,31 @@ cd harvestguard-bd
 flutter pub get
 ```
 
----
-
 ### 3️⃣ Firebase Setup
 
-1. Create a new Firebase project
-2. Enable:
+1.  Create a new Firebase project
 
-   * Authentication (Email/Password)
-   * Firestore Database
-   * Firebase Storage
-3. Download the configuration files:
+2.  Enable:
 
-   * `google-services.json` for Android
-   * `GoogleService-Info.plist` for iOS
-4. Place them in the respective platform folders
+      * Authentication (Email/Password)
+      * Firestore Database
+      * Firebase Storage
 
----
+3.  Download configuration files:
+
+      * `google-services.json` → Android
+      * `GoogleService-Info.plist` → iOS
+
+4.  Place them in respective platform folders
 
 ### 4️⃣ Environment Variables
 
-Create a `.env` file in the root directory:
+Create `.env` in root:
 
 ```env
 OPENWEATHER_API_KEY=your_api_key_here
 PLANTNET_API_KEY=your_api_key_here
 ```
-
----
 
 ### 5️⃣ Run the App
 
@@ -222,7 +210,7 @@ For Web:
 flutter build web
 ```
 
----
+-----
 
 ## 🌐 Deployment
 
@@ -233,40 +221,46 @@ flutter build web
 netlify deploy --prod --dir=build/web
 ```
 
----
+-----
 
-## 📱 Screenshots (Add Your Screens Here)
+## 📱 Screenshots
 
-```
-/screenshots/home.png
-/screenshots/dashboard.png
-/screenshots/weather.png
-/screenshots/scanner.png
-```
+\<div align="center"\>
+\<h3\>Landing & Onboarding\</h3\>
+\<img src="lib/assets/screenshot/landing%20apge.png" width="200" alt="Landing Page" /\>
+\<img src="lib/assets/screenshot/landing%20page%202.png" width="200" alt="Onboarding 2" /\>
+\<img src="lib/assets/screenshot/landing%20page%203.png" width="200" alt="Onboarding 3" /\>
 
----
+\<h3\>Dashboard & Tracking\</h3\>
+\<img src="lib/assets/screenshot/dashboard%20.png" width="200" alt="Dashboard" /\>
+\<img src="lib/assets/screenshot/batch%20info.png" width="200" alt="Batch Info" /\>
+\<img src="lib/assets/screenshot/data.png" width="200" alt="Data Analytics" /\>
+
+\<h3\>Tools & Profile\</h3\>
+\<img src="lib/assets/screenshot/scanner%20page.png" width="200" alt="Scanner" /\>
+\<img src="lib/assets/screenshot/profile%20page.png" width="200" alt="Profile" /\>
+\</div\>
+
+-----
 
 ## 🌟 Special Notes
 
-* Supports **Bangla & English**
-* Works in **offline-safe mode**
-* Real-time weather-based crop safety alerts
-* Designed for rural farmers with low-bandwidth support
+  * Supports **Bangla & English**
+  * Real-time weather-based crop safety alerts
+  * Designed for rural farmers with low-bandwidth support
 
-
+-----
 
 ## 📄 License
 
-This project is for academic and demonstration purposes.
+For academic and demonstration purposes only.
 
----
+-----
 
 ## 💬 Contact
 
-For collaboration or support:
+  * GitHub: [https://github.com/DasBytes](https://github.com/DasBytes)
 
-* GitHub: [https://github.com/DasBytes](https://github.com/DasBytes)
-
----
+-----
 
 ### 🌾 “Technology that protects every grain.”
